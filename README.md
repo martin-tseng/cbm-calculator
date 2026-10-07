@@ -18,3 +18,11 @@
 ## 版本紀錄
 - v1:初版
 - v2:自動計算、多品項、計費重、貨櫃裝載率、複製結果、除數可調
+
+## 航線圖(travel/)
+從桃園出發的世界航線圖，以城市為單位記錄，依城市所在的行政區上色，可縮放。
+
+- 網址：https://martin-tseng.github.io/cbm-calculator/travel/
+- 新增或修改城市：編輯travel/cities.js的CITIES，一個城市一行
+- status：visited已去、planned計畫中、wish願望
+- 行政區邊界資料：travel/regions.json(Natural Earth一級行政區，已簡化)

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Martin & 潔文航線圖</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: aeronautical chart. Full-width map with flying routes on top, logbook strip below. */
+:root{
+  --paper:#eef2f4; --sheet:#f8fafb; --ink:#13304a; --ink-2:#4d6578; --line:#c9d4dc;
+  --land:#dbe3e9; --land-edge:#b5c3ce; --home:#9fb2c2; --visited:#1f5f8b; --planned:#7aa8c9; --wish:#e3e9ee;
+  --amber:#d9822b; --ocean:#e7edf1;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0c1824; --sheet:#112130; --ink:#dfe8ef; --ink-2:#8fa5b6; --line:#24384a;
+  --land:#1a2d3e; --land-edge:#2c4458; --home:#3c5a72; --visited:#4f9ad0; --planned:#2f6890; --wish:#203546;
+  --amber:#f0a04b; --ocean:#0f1e2c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0c1824; --sheet:#112130; --ink:#dfe8ef; --ink-2:#8fa5b6; --line:#24384a;
+  --land:#1a2d3e; --land-edge:#2c4458; --home:#3c5a72; --visited:#4f9ad0; --planned:#2f6890; --wish:#203546;
+  --amber:#f0a04b; --ocean:#0f1e2c; color-scheme:dark}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;color:var(--ink-2);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,5vw,44px);line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.stats{display:flex;gap:28px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat b{font-family:var(--f-mono);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:12px;color:var(--ink-2);letter-spacing:.06em}
+.chart{background:var(--sheet);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+.chart svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:18px;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.coord{position:absolute;top:10px;left:14px;font-family:var(--f-mono);font-size:11px;color:var(--ink-2);letter-spacing:.08em;pointer-events:none}
+h2{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0}
+.log{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.leg{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:14px 16px;background:var(--sheet);border:1px solid var(--line);border-radius:6px;min-width:0}
+.leg:hover,.leg[aria-pressed="true"]{border-color:var(--ink-2)}
+.leg:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.code{grid-row:span 3;font-family:var(--f-mono);font-weight:600;font-size:13px;line-height:1.35;color:var(--ink-2);padding-top:2px}
+.code b{display:block;font-size:20px;color:var(--ink)}
+.city{font-weight:700;font-size:16px}
+.meta{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.note{font-size:13px;color:var(--ink-2);min-width:0}
+.pill{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:2px;font-weight:500}
+.p-visited{background:var(--visited);color:var(--sheet)}
+.p-planned{border:1px solid var(--planned);color:var(--ink)}
+.p-wish{border:1px dashed var(--ink-2);color:var(--ink-2)}
+.foot{font-size:12px;color:var(--ink-2)}
+.route{fill:none;stroke-linecap:round}
+@media (max-width:520px){.stats{gap:18px}.stat b{font-size:22px}}
+.chart{touch-action:none}
+.chart svg{cursor:grab}.chart svg:active{cursor:grabbing}
+.zoom{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px}
+.zoom button{width:32px;height:32px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:4px;font-family:var(--f-mono);font-size:16px;cursor:pointer;line-height:1}
+.zoom button:hover{border-color:var(--ink-2)}
+.zoom button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.hint{position:absolute;bottom:52px;left:14px;font-size:11px;color:var(--ink-2);pointer-events:none}
+.country{display:flex;flex-direction:column;gap:10px}
+.country h3{margin:0;font-size:14px;font-weight:700;display:flex;gap:10px;align-items:baseline}
+.country h3 span{font-family:var(--f-mono);font-size:12px;font-weight:400;color:var(--ink-2)}
+.groups{display:flex;flex-direction:column;gap:20px}
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">TPE 出發 · 飛行紀錄</div>
+      <h1>Martin & 潔文航線圖</h1>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sCountry">0</b><span>已去國家</span></div>
+      <div class="stat"><b id="sRegion">0</b><span>已去區域</span></div>
+      <div class="stat"><b id="sCity">0</b><span>已去城市</span></div>
+      <div class="stat"><b id="sKm">0</b><span>累計航程km</span></div>
+      <div class="stat"><b id="sNext">-</b><span>下一站</span></div>
+    </div>
+  </header>
+
+  <div class="chart">
+    <div class="coord" id="coord">25.08N 121.23E · TPE</div>
+    <div class="zoom"><button type="button" id="zIn" aria-label="放大">+</button><button type="button" id="zOut" aria-label="縮小">−</button><button type="button" id="zReset" aria-label="回到全圖" style="font-size:11px">全</button></div>
+    <div class="hint">滾輪或雙指縮放，拖曳移動</div>
+    <svg id="map" viewBox="0 0 960 500" role="img" aria-label="世界地圖，從桃園機場出發的航線"></svg>
+    <div class="legend">
+      <span><i style="background:var(--home)"></i>出發地(桃園市)</span>
+      <span><i style="background:var(--visited)"></i>已去</span>
+      <span><i style="background:var(--planned)"></i>計畫中</span>
+      <span><i style="background:var(--wish);border:1px dashed var(--ink-2)"></i>願望清單</span>
+    </div>
+  </div>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2>城市紀錄</h2>
+    <div class="groups" id="log"></div>
+    <p class="foot">點選城市會在地圖上放大並單獨顯示航線，再點一次恢復全部。願望清單目前為範例資料，可替換成你們自己想去的地方。</p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="cities.js"></script>
+<script>
+const STATUS={visited:"已去",planned:"計畫中",wish:"願望"};
+// ======================================================
+
+(async()=>{
+const TOPO=await fetch("regions.json").then(r=>r.json());
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const W=960,H=500,R=6371;
+const svg=d3.select("#map");
+const proj=d3.geoNaturalEarth1().rotate([-115,0]).fitExtent([[10,14],[W-10,H-10]],{type:"Sphere"});
+const path=d3.geoPath(proj);
+const regions=topojson.feature(TOPO,TOPO.objects.regions).features;
+const fmt=d3.format(",");
+const rank={visited:3,planned:2,wish:1};
+
+// 每個城市找出所在的行政區(縣市/都道府縣/省)，只替該區上色
+function regionOf(c){
+  const pt=[c.lon,c.lat];
+  let f=regions.find(r=>d3.geoContains(r,pt));
+  for(const d of [.05,.1,.2,.4]){ // 沿海城市可能落在簡化後的海岸線外，往周邊找
+    if(f)break;
+    for(let a=0;a<8&&!f;a++){const q=[pt[0]+d*Math.cos(a*Math.PI/4),pt[1]+d*Math.sin(a*Math.PI/4)];f=regions.find(r=>d3.geoContains(r,q))}
+  }
+  if(!f){
+    let best=1e9;regions.forEach(r=>{const d=d3.geoDistance(pt,d3.geoCentroid(r));if(d<best){best=d;f=r}});
+  }
+  return f;
+}
+const homeRegion=regionOf(HOME);
+const stateOf=new Map([[homeRegion,"home"]]);
+CITIES.forEach(c=>{c.region=regionOf(c);const s=stateOf.get(c.region);if(s!=="home"&&(!s||rank[c.status]>rank[s]))stateOf.set(c.region,c.status)});
+const fillOf=f=>({home:"var(--home)",visited:"var(--visited)",planned:"var(--planned)",wish:"var(--wish)"})[stateOf.get(f)]||"var(--land)";
+
+const world=svg.append("g");
+world.append("path").datum({type:"Sphere"}).attr("d",path).attr("fill","var(--ocean)").attr("stroke","var(--line)").attr("vector-effect","non-scaling-stroke");
+world.append("path").datum(d3.geoGraticule10()).attr("d",path).attr("fill","none").attr("stroke","var(--line)").attr("stroke-width",.5).attr("stroke-dasharray","2 3").attr("vector-effect","non-scaling-stroke");
+world.append("g").selectAll("path").data(regions).join("path").attr("d",path).attr("fill",fillOf)
+  .attr("stroke",fillOf).attr("stroke-width",.3).attr("vector-effect","non-scaling-stroke");
+const obj=TOPO.objects.regions;
+const innerLines=world.append("path").datum(topojson.mesh(TOPO,obj,(a,b)=>a!==b&&a.properties.adm0_a3===b.properties.adm0_a3))
+  .attr("d",path).attr("fill","none").attr("stroke","var(--land-edge)").attr("stroke-width",.4).attr("vector-effect","non-scaling-stroke");
+world.append("path").datum(topojson.mesh(TOPO,obj,(a,b)=>a.properties.adm0_a3!==b.properties.adm0_a3||a===b))
+  .attr("d",path).attr("fill","none").attr("stroke","var(--land-edge)").attr("stroke-width",.8).attr("vector-effect","non-scaling-stroke");
+const gRoutes=world.append("g"),gTrails=world.append("g"),gPins=world.append("g"),gPlanes=world.append("g");
+
+let K=1; // 目前縮放倍率
+const routes=CITIES.map((c,i)=>{
+  const a=[HOME.lon,HOME.lat],b=[c.lon,c.lat];
+  const interp=d3.geoInterpolate(a,b);
+  const km=Math.round(d3.geoDistance(a,b)*R);
+  const line=gRoutes.append("path").datum({type:"LineString",coordinates:d3.range(0,1.0001,1/64).map(interp)})
+    .attr("class","route").attr("d",path).attr("vector-effect","non-scaling-stroke")
+    .attr("stroke",c.status==="visited"?"var(--visited)":"var(--ink-2)").attr("stroke-width",c.status==="visited"?1.8:1.2)
+    .attr("stroke-dasharray",c.status==="visited"?null:c.status==="planned"?"6 4":"2 5").attr("opacity",c.status==="wish"?.6:.9);
+  const [x,y]=proj(b);
+  const pin=gPins.append("g").attr("data-x",x).attr("data-y",y);
+  pin.append("circle").attr("r",3.5).attr("fill",c.status==="visited"?"var(--visited)":"var(--sheet)").attr("stroke","var(--ink)").attr("stroke-width",1.4);
+  const label=pin.append("text").text(c.city).attr("x",6).attr("y",-6).attr("font-size",11).attr("font-weight",700).attr("fill","var(--ink)")
+    .attr("paint-order","stroke").attr("stroke","var(--sheet)").attr("stroke-width",3).attr("stroke-linejoin","round");
+  const plane=gPlanes.append("g");
+  plane.append("path").attr("d","M9 0 L-5 -1.4 L-8 -6 L-10 -6 L-8.4 -1.2 L-9 -1 L-11 -3 L-12 -3 L-11 0 L-12 3 L-11 3 L-9 1 L-8.4 1.2 L-10 6 L-8 6 L-5 1.4 Z")
+    .attr("fill","var(--amber)").attr("stroke","var(--sheet)").attr("stroke-width",.6);
+  const trail=gTrails.append("path").attr("class","route").attr("stroke","var(--amber)").attr("stroke-width",2.2).attr("vector-effect","non-scaling-stroke");
+  return {c,x,y,interp,km,line,pin,label,plane,trail,dur:3500+km*0.9,offset:i*1100};
+});
+const [hx,hy]=proj([HOME.lon,HOME.lat]);
+const home=gPins.append("g").attr("data-x",hx).attr("data-y",hy);
+home.append("circle").attr("r",8).attr("fill","none").attr("stroke","var(--amber)").attr("stroke-width",1.2).attr("class","pulse");
+home.append("circle").attr("r",4.5).attr("fill","var(--amber)");
+home.append("text").text("TPE").attr("x",-30).attr("y",14).attr("font-family","IBM Plex Mono, monospace").attr("font-size",11).attr("font-weight",600).attr("fill","var(--ink)");
+
+// 釘點與文字不隨縮放變大;文字在畫面上太擠時自動隱藏
+function layoutPins(){
+  gPins.selectAll(":scope > g").attr("transform",function(){return `translate(${this.dataset.x},${this.dataset.y}) scale(${1/K})`});
+  const shown=[[hx,hy]];
+  routes.slice().sort((a,b)=>rank[b.c.status]-rank[a.c.status]).forEach(r=>{
+    const near=shown.some(([x,y])=>Math.hypot((x-r.x)*K,(y-r.y)*K)<26);
+    r.label.attr("display",near?"none":null);
+    if(!near)shown.push([r.x,r.y]);
+  });
+}
+
+innerLines.attr("opacity",.5);
+const zoom=d3.zoom().scaleExtent([1,24]).translateExtent([[0,0],[W,H]])
+  .on("zoom",e=>{K=e.transform.k;world.attr("transform",e.transform);innerLines.attr("opacity",Math.min(1,.35+K*.15));layoutPins();if(reduce)routes.forEach(r=>place(r,.55))});
+svg.call(zoom).on("dblclick.zoom",null);
+d3.select("#zIn").on("click",()=>svg.transition().duration(300).call(zoom.scaleBy,1.8));
+d3.select("#zOut").on("click",()=>svg.transition().duration(300).call(zoom.scaleBy,1/1.8));
+d3.select("#zReset").on("click",()=>{setFocus(null);svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity)});
+layoutPins();
+
+function place(r,p){
+  const pt=proj(r.interp(p)),ahead=proj(r.interp(Math.min(p+.01,1))),back=proj(r.interp(Math.max(p-.01,0)));
+  const ang=Math.atan2(ahead[1]-back[1],ahead[0]-back[0])*180/Math.PI;
+  const s=(.8+Math.sin(Math.PI*p)*.5)/K;
+  r.plane.attr("transform",`translate(${pt[0]},${pt[1]}) rotate(${ang}) scale(${s})`);
+  const p0=Math.max(0,p-.18);
+  r.trail.attr("d",path({type:"LineString",coordinates:d3.range(p0,p+.0001,(p-p0)/16||1).map(r.interp)}));
+}
+let focus=null;
+// 同一航線(同機場)只飛一架，避免大阪京都重疊
+const flying=new Set();
+routes.forEach(r=>{r.fly=!flying.has(r.c.airport);flying.add(r.c.airport)});
+function frame(now){
+  routes.forEach(r=>{
+    const on=focus?focus===r:r.fly;
+    if(!on){r.plane.attr("opacity",0);r.trail.attr("opacity",0);return}
+    const tt=((now+r.offset)%(r.dur+1200))/r.dur;
+    if(tt>1){r.plane.attr("opacity",0);r.trail.attr("opacity",0);return}
+    r.plane.attr("opacity",1);r.trail.attr("opacity",.85);
+    place(r,d3.easeCubicInOut(tt));
+  });
+  const k=(now%2200)/2200;
+  home.select(".pulse").attr("r",5+k*12).attr("opacity",1-k);
+  requestAnimationFrame(frame);
+}
+if(reduce){routes.forEach(r=>{place(r,.55);r.trail.attr("opacity",0);r.plane.attr("opacity",r.fly?1:0)})}else requestAnimationFrame(frame);
+
+// 統計
+const visited=CITIES.filter(c=>c.status==="visited");
+document.getElementById("sCountry").textContent=new Set(visited.map(c=>c.country)).size;
+document.getElementById("sCity").textContent=visited.length;
+document.getElementById("sRegion").textContent=new Set(visited.map(c=>c.region)).size;
+const vAir=new Map();routes.filter(r=>r.c.status==="visited").forEach(r=>vAir.set(r.c.airport,r.km));
+document.getElementById("sKm").textContent=fmt(d3.sum([...vAir.values()])*2);
+const next=CITIES.find(c=>c.status==="planned");
+document.getElementById("sNext").textContent=next?next.city:"-";
+
+// 城市卡片，依國家分組
+const coord=document.getElementById("coord");
+function setFocus(r){
+  focus=r;
+  d3.selectAll(".leg").attr("aria-pressed",function(){return String(r!==null&&this.__route===r)});
+  routes.forEach(x=>{const on=!r||r===x;x.line.attr("opacity",on?(x.c.status==="wish"?.6:.9):.12);x.pin.attr("opacity",on?1:.3)});
+  const c=r?r.c:HOME;
+  coord.textContent=`${Math.abs(c.lat).toFixed(2)}${c.lat>=0?"N":"S"} ${Math.abs(c.lon).toFixed(2)}${c.lon>=0?"E":"W"} · ${r?c.city+" "+c.airport:"TPE"}`;
+  if(reduce)routes.forEach(x=>x.plane.attr("opacity",(r?x===r:x.fly)?1:0));
+}
+function zoomTo(r){
+  // 把出發地和目的地一起框進畫面
+  const [x0,x1]=d3.extent([hx,r.x]),[y0,y1]=d3.extent([hy,r.y]);
+  const k=Math.max(1,Math.min(24,.7/Math.max((x1-x0+1)/W,(y1-y0+1)/H)));
+  svg.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-(x0+x1)/2,-(y0+y1)/2));
+}
+const order={visited:0,planned:1,wish:2};
+const groups=d3.groups(routes,r=>r.c.country).sort((a,b)=>d3.min(a[1],r=>order[r.c.status])-d3.min(b[1],r=>order[r.c.status]));
+const log=d3.select("#log");
+groups.forEach(([country,rs])=>{
+  const n=rs.filter(r=>r.c.status==="visited").length;
+  const g=log.append("div").attr("class","country");
+  g.append("h3").html(`${country}<span>${rs.length}個城市${n?"·已去"+n:""}</span>`);
+  const grid=g.append("div").attr("class","log");
+  rs.sort((a,b)=>order[a.c.status]-order[b.c.status]).forEach(r=>{
+    const c=r.c;
+    const btn=grid.append("button").attr("class","leg").attr("type","button").attr("aria-pressed","false");
+    btn.node().__route=r;
+    btn.html(`<div class="code"><b>${c.airport}</b>TPE</div>
+      <div class="city">${c.city}<span class="pill p-${c.status}">${STATUS[c.status]}</span></div>
+      <div class="meta">${c.regionName||c.region.properties.name_zht||c.region.properties.name} · 單程${fmt(r.km)}km · ${c.date}</div>
+      <div class="note">${c.note}</div>`);
+    btn.on("click",()=>{if(focus===r){setFocus(null);svg.transition().duration(500).call(zoom.transform,d3.zoomIdentity)}else{setFocus(r);zoomTo(r)}});
+  });
+});
+})();
+</script>
+
+</body>
+</html>
