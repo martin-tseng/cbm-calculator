@@ -1,0 +1,146 @@
+{
+  "updated": "2026-10-07",
+  "note": "整理自公開比較網站，實際內容以銀行官網公告為準",
+  "cards": [
+    {
+      "name": "彰銀商旅御璽Fun心卡",
+      "points": ["國內0.6%、國外2.5%現金回饋", "上半年交通/飛航5%活動已於6/30結束，下半年新活動未查到"],
+      "deadline": "",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/%E5%BD%B0%E9%8A%80%E5%95%86%E6%97%85%E5%BE%A1%E7%92%BD%E5%8D%A1-chb-business-titanium"
+    },
+    {
+      "name": "上海小小兵回饋卡",
+      "points": ["國內1.234%、國外2.234%，每月上限1,000元", "全球環球影城10%，每期上限500元"],
+      "deadline": "",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/%E4%B8%8A%E6%B5%B7%E5%95%86%E9%8A%80%E5%B0%8F%E5%B0%8F%E5%85%B5%E5%9B%9E%E9%A5%8B%E5%8D%A1-scsb-minion-cash"
+    },
+    {
+      "name": "一銀iLEO",
+      "points": ["LINE Pay、街口支付筆筆2%，指定支付滿千加碼1%", "外幣、旅遊、航空、外送、網購、串流筆筆2%，海外實體再加碼1%", "當月刷3筆滿千元可領券(Uber抵用券或網購/訂閱加碼)"],
+      "deadline": "2026/12/31",
+      "register": "需一銀帳戶扣繳卡費+電子帳單才有加碼",
+      "source": "https://roo.cash/creditcard/info/first-ileo"
+    },
+    {
+      "name": "永豐現金回饋Green卡",
+      "points": ["國內1%、國外2%無上限", "綠色通路最高5%，加碼部分每期上限300元"],
+      "deadline": "2026/12/31",
+      "register": "需電子帳單+自動扣繳",
+      "source": "https://roo.cash/creditcard/info/%E6%B0%B8%E8%B1%90%E7%8F%BE%E9%87%91%E5%9B%9E%E9%A5%8BGreen%E5%8D%A1-sinopac-green"
+    },
+    {
+      "name": "永豐DAWHO",
+      "points": ["國內1%、國外2%無上限", "大戶等級加碼2.5%(月上限400元)，Plus等級加碼4%(月上限1,000元)", "悠遊卡自動加值加碼3%至5%"],
+      "deadline": "",
+      "register": "加碼需完成指定任務",
+      "source": "https://roo.cash/creditcard/info/sinopac-dawho"
+    },
+    {
+      "name": "國泰CUBE",
+      "points": ["一般消費0.3%", "玩數位、樂饗購、趣旅行方案3%，集精選方案2%", "依消費類型在CUBE App切換方案"],
+      "deadline": "2026/12/31",
+      "register": "需CUBE App繳卡費或自動扣繳",
+      "source": "https://roo.cash/creditcard/info/%E5%9C%8B%E6%B3%B0CUBE%E5%8D%A1-cub-cube"
+    },
+    {
+      "name": "玉山Unicard",
+      "points": ["簡單選2%、任意選2.5%、UP選3.5%", "中油加油最高4.5%(10/1起)", "週三全聯玉山Wallet綁全支付滿千送100點", "指定咖啡滿5筆加碼3%至10/31"],
+      "deadline": "2026/12/31",
+      "register": "中油4.5%需登錄",
+      "source": "https://roo.cash/creditcard/info/%E7%8E%89%E5%B1%B1Unicard-esun-unicard"
+    },
+    {
+      "name": "玉山UBear",
+      "points": ["國內外1%", "網購最高3%，每期上限150元", "Netflix、ChatGPT等影音訂閱最高10%，每期上限100元"],
+      "deadline": "2027/2/28",
+      "register": "需帳單e化",
+      "source": "https://roo.cash/creditcard/info/esun-ubear"
+    },
+    {
+      "name": "合庫卡娜赫拉悠遊聯名卡",
+      "points": ["尚未找到可靠的2026下半年資料"],
+      "deadline": "",
+      "register": "",
+      "source": "https://www.google.com/search?q=%E5%90%88%E5%BA%AB%E5%8D%A1%E5%A8%9C%E8%B5%AB%E6%8B%89%E6%82%A0%E9%81%8A%E8%81%AF%E5%90%8D%E5%8D%A1"
+    },
+    {
+      "name": "合庫i享樂生活卡",
+      "points": ["國內1%、國外2%無上限", "上半年外送加碼5%活動已於6/30結束", "上月消費滿6,000元享指定停車場免費"],
+      "deadline": "",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/%E5%90%88%E5%BA%ABi%E4%BA%AB%E6%A8%82%E7%94%9F%E6%B4%BB%E5%8D%A1-tcb-i-joy"
+    },
+    {
+      "name": "聯邦吉鶴卡",
+      "points": ["國內1%無上限，嚴選日系名店加碼4%(月上限500元)", "日幣消費2.5%，行動支付最高再加1.5%", "日本交通卡儲值1.5%"],
+      "deadline": "2026/12/31",
+      "register": "日本行動支付加碼需登錄；交通卡每月15日10點開放登錄",
+      "source": "https://roo.cash/creditcard/info/union-jiho"
+    },
+    {
+      "name": "富邦Costco聯名卡",
+      "points": ["店外1%無上限", "Costco實體2%、線上3%、自助加油3%"],
+      "deadline": "",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/fubon-costco"
+    },
+    {
+      "name": "中信LINE Pay鼎極卡",
+      "points": ["中信LINE Pay卡:國內1%、海外實體2.8%無上限", "指定通路最高16%，需登錄", "鼎極卡等級權益可能不同，請以官網為準"],
+      "deadline": "",
+      "register": "指定通路需登錄",
+      "source": "https://www.money101.com.tw/blog/%E4%B8%AD%E4%BF%A1linepay%E5%8D%A1-2026"
+    },
+    {
+      "name": "中信uniopen聯名卡",
+      "points": ["國內1%，綁icash Pay加碼4%", "統一集團通路最高11%，需完成每月5品牌踩點任務"],
+      "deadline": "2026/12/31",
+      "register": "需完成踩點任務",
+      "source": "https://roo.cash/blog/uniopen-card-review/"
+    },
+    {
+      "name": "元大鑽金悠遊聯名卡",
+      "points": ["元大鑽金卡:國內1.2%、海外2.2%無上限", "悠遊聯名版權益可能不同，請以官網為準"],
+      "deadline": "2026/12/31",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/%E5%85%83%E5%A4%A7%E9%91%BD%E9%87%91%E5%8D%A1-yuanta-diamond"
+    },
+    {
+      "name": "樂天台灣虎航聯名卡",
+      "points": ["國內0.5%無上限，日韓實體2%無上限", "LINE Pay、街口、虎航購票2.5% tigerpoints，每期上限500點"],
+      "deadline": "2026/12/31",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/%E6%A8%82%E5%A4%A9%E5%8F%B0%E7%81%A3%E8%99%8E%E8%88%AA%E8%81%AF%E5%90%8D%E5%8D%A1-rakuten-tigercash"
+    },
+    {
+      "name": "樂天Panda J卡",
+      "points": ["國內0.5%、海外1.5%無上限", "行動支付、航空、加油、旅行社最高加碼2.5%(國內每期上限250元、海外300元)"],
+      "deadline": "2026/12/31",
+      "register": "",
+      "source": "https://roo.cash/creditcard/info/rakuten-pandaj"
+    },
+    {
+      "name": "滙豐Live+現金回饋卡",
+      "points": ["一般消費0.88%無上限", "餐飲、購物、娛樂各加碼3%，每期上限888點", "自動扣繳加碼1%，每期上限200點"],
+      "deadline": "2026/12/31",
+      "register": "免登錄",
+      "source": "https://roo.cash/creditcard/info/%E6%BB%99%E8%B1%90Live%2B%E7%8F%BE%E9%87%91%E5%9B%9E%E9%A5%8B%E5%8D%A1-hsbc-live"
+    },
+    {
+      "name": "台企永續生活悠遊卡",
+      "points": ["尚未找到可靠的2026下半年資料"],
+      "deadline": "",
+      "register": "",
+      "source": "https://www.google.com/search?q=%E8%87%BA%E7%81%A3%E4%BC%81%E9%8A%80%E6%B0%B8%E7%BA%8C%E7%94%9F%E6%B4%BB%E6%82%A0%E9%81%8A%E5%8D%A1"
+    },
+    {
+      "name": "華南熊Q卡JCB晶緻卡",
+      "points": ["尚未找到可靠的2026下半年資料"],
+      "deadline": "",
+      "register": "",
+      "source": "https://www.google.com/search?q=%E8%8F%AF%E5%8D%97%E7%86%8AQ%E5%8D%A1"
+    }
+  ]
+}
