@@ -5,52 +5,172 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>材積計算器</title>
 <style>
-  body{font-family:-apple-system,"Noto Sans TC",sans-serif;background:#fff;color:#111;margin:0;padding:16px;max-width:480px}
-  h1{font-size:20px;margin:0 0 16px}
-  label{display:block;font-size:14px;margin:12px 0 4px}
-  input{width:100%;box-sizing:border-box;padding:10px;font-size:16px;border:1px solid #999;border-radius:4px}
-  button{margin-top:16px;width:100%;padding:12px;font-size:16px;background:#111;color:#fff;border:0;border-radius:4px}
-  table{width:100%;margin-top:20px;border-collapse:collapse;font-size:15px}
-  td{padding:8px 4px;border-bottom:1px solid #ddd}
-  td:last-child{text-align:right;font-weight:600}
-  .note{font-size:12px;color:#666;margin-top:16px}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#fff;color:#111;margin:0 auto;padding:16px;max-width:560px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{font-size:12px;color:#666;margin:0 0 16px}
+  h2{font-size:15px;margin:24px 0 8px;border-bottom:2px solid #111;padding-bottom:4px}
+  .item{border:1px solid #ccc;border-radius:6px;padding:10px;margin-bottom:10px}
+  .item-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:6px}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .grid label{font-size:11px;color:#555;display:block;margin-bottom:2px}
+  input{width:100%;padding:8px 6px;font-size:16px;border:1px solid #999;border-radius:4px}
+  .del{background:none;border:0;color:#999;font-size:13px;cursor:pointer;padding:0}
+  .btn{width:100%;padding:10px;font-size:15px;border:1px solid #111;border-radius:4px;background:#fff;color:#111;cursor:pointer}
+  .btn.dark{background:#111;color:#fff;margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:7px 4px;border-bottom:1px solid #e5e5e5}
+  td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+  tr.key td{font-size:16px;border-bottom:1px solid #111}
+  .bar{height:6px;background:#eee;border-radius:3px;margin-top:3px}
+  .bar div{height:100%;background:#111;border-radius:3px}
+  .settings{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .settings label{font-size:12px;color:#555}
+  .note{font-size:11px;color:#777;margin-top:16px;line-height:1.6}
+  @media(max-width:420px){.grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <h1>材積計算器</h1>
+<p class="sub">輸入後自動計算，可新增多個品項</p>
 
-<label>長(cm)</label><input id="l" type="number" inputmode="decimal">
-<label>寬(cm)</label><input id="w" type="number" inputmode="decimal">
-<label>高(cm)</label><input id="h" type="number" inputmode="decimal">
-<label>件數</label><input id="q" type="number" inputmode="numeric" value="1">
-<button onclick="calc()">計算</button>
+<h2>品項</h2>
+<div id="items"></div>
+<button class="btn" onclick="addItem()">+新增品項</button>
 
+<h2>計算結果</h2>
 <table>
-  <tr><td>總體積(CBM)</td><td id="cbm">-</td></tr>
-  <tr><td>才數</td><td id="cai">-</td></tr>
-  <tr><td>空運材積重(kg,÷6000)</td><td id="air">-</td></tr>
-  <tr><td>快遞材積重(kg,÷5000)</td><td id="exp">-</td></tr>
+  <tr><td>總件數</td><td id="r-qty">0</td></tr>
+  <tr><td>總體積(CBM)</td><td id="r-cbm">0.000</td></tr>
+  <tr><td>才數</td><td id="r-cai">0.00</td></tr>
+  <tr><td>總實重(kg)</td><td id="r-wt">0.0</td></tr>
+  <tr><td>空運材積重(kg)</td><td id="r-airv">0.0</td></tr>
+  <tr class="key"><td>空運計費重(kg)</td><td id="r-airc">0.0</td></tr>
+  <tr><td>快遞材積重(kg)</td><td id="r-expv">0.0</td></tr>
+  <tr class="key"><td>快遞計費重(kg)</td><td id="r-expc">0.0</td></tr>
 </table>
 
-<p class="note">1才=30.3×30.3×30.3cm³。除數依各承攬商規定可能不同，請以合約為準。</p>
+<h2>貨櫃裝載率參考</h2>
+<table id="containers"></table>
+
+<button class="btn dark" onclick="copyResult()" id="copyBtn">複製結果</button>
+
+<h2>參數設定</h2>
+<div class="settings">
+  <div><label>空運除數</label><input id="s-air" type="number" value="6000"></div>
+  <div><label>快遞除數</label><input id="s-exp" type="number" value="5000"></div>
+</div>
+
+<p class="note">
+計費重=實重與材積重取大者。<br>
+1才=30.3×30.3×30.3cm³。<br>
+貨櫃容量為常見可用容積概估，實際可裝載量受包裝形狀、堆疊及重量限制影響。<br>
+除數依各承攬商規定可能不同，請以合約為準。
+</p>
 
 <script>
-  // 參數集中於此，方便修改與在GitHub上比對差異
   const CAI_CM3 = 30.3 * 30.3 * 30.3;
-  const AIR_DIVISOR = 6000;
-  const EXPRESS_DIVISOR = 6000;
+  // 貨櫃可用容積概估(CBM)
+  const CONTAINERS = [
+    {name:'20GP', cbm:33},
+    {name:'40GP', cbm:67},
+    {name:'40HQ', cbm:76}
+  ];
+
+  let seq = 0;
+
+  function addItem(){
+    seq++;
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-head"><span>品項</span><button class="del" onclick="removeItem(this)">刪除</button></div>
+      <div class="grid">
+        <div><label>長cm</label><input type="number" inputmode="decimal" data-f="l"></div>
+        <div><label>寬cm</label><input type="number" inputmode="decimal" data-f="w"></div>
+        <div><label>高cm</label><input type="number" inputmode="decimal" data-f="h"></div>
+        <div><label>件數</label><input type="number" inputmode="numeric" data-f="q" value="1"></div>
+        <div><label>單件kg</label><input type="number" inputmode="decimal" data-f="kg"></div>
+      </div>`;
+    document.getElementById('items').appendChild(div);
+    renumber();
+    calc();
+  }
+
+  function removeItem(btn){
+    const items = document.querySelectorAll('.item');
+    if(items.length <= 1) return;
+    btn.closest('.item').remove();
+    renumber();
+    calc();
+  }
+
+  function renumber(){
+    document.querySelectorAll('.item').forEach((el,i)=>{
+      el.querySelector('.item-head span').textContent = '品項' + (i+1);
+    });
+  }
+
+  function val(el, f){
+    return parseFloat(el.querySelector(`[data-f="${f}"]`).value) || 0;
+  }
+
+  let last = {};
 
   function calc(){
-    const l = +document.getElementById('l').value;
-    const w = +document.getElementById('w').value;
-    const h = +document.getElementById('h').value;
-    const q = +document.getElementById('q').value || 1;
-    const cm3 = l * w * h * q;
-    document.getElementById('cbm').textContent = (cm3 / 1e6).toFixed(3);
-    document.getElementById('cai').textContent = (cm3 / CAI_CM3).toFixed(2);
-    document.getElementById('air').textContent = (cm3 / AIR_DIVISOR).toFixed(1);
-    document.getElementById('exp').textContent = (cm3 / EXPRESS_DIVISOR).toFixed(1);
+    const airDiv = parseFloat(document.getElementById('s-air').value) || 6000;
+    const expDiv = parseFloat(document.getElementById('s-exp').value) || 5000;
+    let cm3 = 0, qty = 0, wt = 0;
+    document.querySelectorAll('.item').forEach(el=>{
+      const q = val(el,'q');
+      cm3 += val(el,'l') * val(el,'w') * val(el,'h') * q;
+      qty += q;
+      wt += val(el,'kg') * q;
+    });
+    const cbm = cm3 / 1e6;
+    const airV = cm3 / airDiv;
+    const expV = cm3 / expDiv;
+    last = {
+      qty, cbm, cai: cm3 / CAI_CM3, wt,
+      airV, airC: Math.max(wt, airV),
+      expV, expC: Math.max(wt, expV)
+    };
+    set('r-qty', qty.toLocaleString());
+    set('r-cbm', cbm.toFixed(3));
+    set('r-cai', last.cai.toFixed(2));
+    set('r-wt', wt.toFixed(1));
+    set('r-airv', airV.toFixed(1));
+    set('r-airc', last.airC.toFixed(1));
+    set('r-expv', expV.toFixed(1));
+    set('r-expc', last.expC.toFixed(1));
+
+    document.getElementById('containers').innerHTML = CONTAINERS.map(c=>{
+      const pct = cbm / c.cbm * 100;
+      const w = Math.min(pct, 100);
+      return `<tr><td>${c.name}(約${c.cbm}CBM)<div class="bar"><div style="width:${w}%"></div></div></td><td>${pct.toFixed(1)}%</td></tr>`;
+    }).join('');
   }
+
+  function set(id, v){ document.getElementById(id).textContent = v; }
+
+  function copyResult(){
+    const t = [
+      `總件數:${last.qty}`,
+      `總體積:${last.cbm.toFixed(3)}CBM`,
+      `才數:${last.cai.toFixed(2)}`,
+      `總實重:${last.wt.toFixed(1)}kg`,
+      `空運計費重:${last.airC.toFixed(1)}kg`,
+      `快遞計費重:${last.expC.toFixed(1)}kg`
+    ].join('\n');
+    navigator.clipboard.writeText(t).then(()=>{
+      const b = document.getElementById('copyBtn');
+      b.textContent = '已複製';
+      setTimeout(()=>b.textContent='複製結果', 1500);
+    });
+  }
+
+  document.addEventListener('input', calc);
+  addItem();
 </script>
 </body>
 </html>
