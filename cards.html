@@ -9,6 +9,24 @@
   body{font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#fff;color:#111;margin:0 auto;padding:16px;max-width:600px}
   h1{font-size:20px;margin:0 0 4px}
   .sub{font-size:12px;color:#666;margin:0 0 12px}
+  .ask{border:2px solid #111;border-radius:8px;padding:12px;margin-bottom:16px}
+  .ask-title{font-size:16px;font-weight:700;margin-bottom:8px}
+  #q{width:100%;padding:10px;font-size:16px;border:1px solid #999;border-radius:4px;font-family:inherit}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .chip-btn{font-size:13px;padding:5px 11px;border:1px solid #999;border-radius:14px;background:#fff;cursor:pointer;color:#111}
+  .chip-btn.on{background:#111;color:#fff;border-color:#111}
+  .rk-head{font-size:12px;color:#666;margin:12px 0 6px}
+  .rk{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #eee}
+  .rk-no{flex:none;width:20px;font-size:15px;font-weight:700;text-align:center}
+  .rk-face{flex:none;width:44px;height:28px;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .rk-info{flex:1;min-width:0}
+  .rk-name{font-size:14px;font-weight:600}
+  .rk-note{font-size:11px;color:#666;line-height:1.4}
+  .rk-rate{flex:none;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+  .rk-rate small{font-size:12px}
+  .rk.first .rk-rate{font-size:24px}
+  .rk-tag{display:inline-block;font-size:10px;padding:0 5px;border:1px solid #999;border-radius:8px;color:#555;margin-left:4px;vertical-align:1px}
+  .more{width:100%;margin-top:6px;padding:7px;font-size:13px;border:1px solid #999;background:#fff;border-radius:4px;cursor:pointer}
   .month{display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px}
   .month button{border:1px solid #111;background:#fff;border-radius:4px;padding:6px 12px;font-size:16px;cursor:pointer}
   .month span{font-size:18px;font-weight:700}
@@ -58,6 +76,13 @@
 <body>
 <h1>信用卡每月檢查</h1>
 <p class="sub" id="updated">載入優惠資料中...</p>
+
+<div class="ask">
+  <div class="ask-title">這筆該刷哪張?</div>
+  <input id="q" placeholder="輸入通路,例:超商、蝦皮、日本、加油" oninput="rank(this.value)" autocomplete="off">
+  <div class="chips" id="chips"></div>
+  <div id="rankOut"></div>
+</div>
 
 <div class="month">
   <button onclick="shift(-1)">‹</button>
@@ -129,6 +154,83 @@
   }
   function setUse(name, v){ state.uses[name] = v; save(); }
 
+  // 查詢:關鍵字對應通路分類
+  const CATS = [
+    {key:'超商', words:['超商','便利商店','7-11','711','小七','seven','全家','萊爾富','ok超商']},
+    {key:'網購', words:['網購','momo','蝦皮','pchome','淘寶','amazon','酷澎','coupang','購物網','網路購物']},
+    {key:'外送', words:['外送','ubereats','uber eats','foodpanda','熊貓']},
+    {key:'串流', words:['串流','訂閱','netflix','spotify','youtube','disney','chatgpt','claude','kkbox']},
+    {key:'餐飲', words:['餐飲','餐廳','吃飯','咖啡','美食','聚餐']},
+    {key:'加油', words:['加油','中油','台塑','油錢']},
+    {key:'LINE Pay', words:['linepay','line pay','行動支付','街口']},
+    {key:'Costco', words:['costco','好市多','科斯特']},
+    {key:'日本', words:['日本','東京','大阪','京都','北海道','沖繩','日幣']},
+    {key:'海外', words:['海外','國外','出國','韓國','歐洲','美國','外幣','泰國']},
+    {key:'旅遊', words:['旅遊','機票','訂房','飯店','航空','旅行社']},
+    {key:'一般', words:['一般','其他','國內','繳費']}
+  ];
+  const DOMESTIC = ['超商','網購','外送','串流','餐飲','加油','LINE Pay','Costco','旅遊','一般'];
+  let curCat = null, showAll = false;
+
+  function findCat(q){
+    const s = q.trim().toLowerCase().replace(/\s+/g,' ');
+    if(!s) return null;
+    return CATS.find(c => c.key.toLowerCase()===s || c.words.some(w => s.includes(w) || w.includes(s) && s.length>=2)) || null;
+  }
+
+  function rateOf(c, cat){
+    const r = c.rates || {};
+    if(r[cat]) return {...r[cat], exact:true};
+    if(cat==='日本' && r['海外']) return {...r['海外'], exact:false, base:'海外回饋'};
+    if(DOMESTIC.includes(cat) && cat!=='一般' && r['一般']) return {...r['一般'], exact:false, base:'一般回饋'};
+    return null;
+  }
+
+  function pickChip(k){
+    document.getElementById('q').value = k;
+    rank(k);
+  }
+
+  function rank(q){
+    const cat = typeof q==='string' ? findCat(q) : null;
+    curCat = cat ? cat.key : null;
+    showAll = false;
+    document.querySelectorAll('.chip-btn').forEach(b=>b.classList.toggle('on', b.dataset.k===curCat));
+    drawRank(q);
+  }
+
+  function drawRank(q){
+    const out = document.getElementById('rankOut');
+    if(!curCat){
+      out.innerHTML = q && q.trim() ? '<div class="rk-head">找不到對應的通路，試試上方分類</div>' : '';
+      return;
+    }
+    const done = state.months[cur] || {};
+    const list = offers.map((c,i)=>({c,i,r:rateOf(c,curCat)}))
+      .filter(x=>x.r)
+      .sort((a,b)=> b.r.rate-a.r.rate || (b.r.exact?1:0)-(a.r.exact?1:0));
+    const shown = showAll ? list : list.slice(0,5);
+    out.innerHTML = `<div class="rk-head">${esc(curCat)}:共${list.length}張可用，依回饋率排序</div>` +
+      shown.map((x,k)=>{
+        const note = [x.r.base, x.r.note].filter(Boolean).join('；');
+        return `<div class="rk ${k===0?'first':''}">
+          <span class="rk-no">${k+1}</span>
+          <span class="rk-face" style="background:${faceBg(x.i)}"></span>
+          <div class="rk-info">
+            <div class="rk-name">${esc(x.c.name)}${done[x.c.name]?'':'<span class="rk-tag">本月未刷</span>'}</div>
+            ${note?`<div class="rk-note">${esc(note)}</div>`:''}
+          </div>
+          <span class="rk-rate">${x.r.rate}<small>%</small></span>
+        </div>`;
+      }).join('') +
+      (list.length>5 ? `<button class="more" onclick="showAll=!showAll;drawRank()">${showAll?'收合':'顯示全部'+list.length+'張'}</button>` : '');
+  }
+
+  function drawChips(){
+    document.getElementById('chips').innerHTML = CATS.map(c=>
+      `<button class="chip-btn" data-k="${esc(c.key)}" onclick="pickChip(this.dataset.k)">${esc(c.key)}</button>`).join('');
+  }
+
   // 原創卡面配色:以黃金角分散色相，每張卡顏色不同
   function faceBg(i){
     const h = Math.round((i * 137.5 + 210) % 360);
@@ -185,6 +287,7 @@
         </div>
       </div>`;
     }).join('') || '<p class="note">沒有符合的卡片</p>';
+    if(curCat) drawRank();
   }
 
   function backup(){
@@ -204,6 +307,7 @@
     .then(j=>{
       offers = j.cards;
       document.getElementById('updated').textContent = `優惠資料更新:${j.updated}`;
+      drawChips();
       render();
     })
     .catch(()=>{ document.getElementById('updated').textContent = '優惠資料載入失敗'; });
