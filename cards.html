@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信用卡每月檢查</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#fff;color:#111;margin:0 auto;padding:16px;max-width:600px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{font-size:12px;color:#666;margin:0 0 12px}
+  .month{display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px}
+  .month button{border:1px solid #111;background:#fff;border-radius:4px;padding:6px 12px;font-size:16px;cursor:pointer}
+  .month span{font-size:18px;font-weight:700}
+  .progress{display:flex;justify-content:space-between;font-size:14px}
+  .bar{height:6px;background:#eee;border-radius:3px;margin:4px 0 16px}
+  .bar div{height:100%;background:#111;border-radius:3px;width:0}
+  .filter{display:flex;gap:6px;margin-bottom:10px}
+  .filter button{flex:1;padding:7px;font-size:13px;border:1px solid #999;background:#fff;border-radius:4px;cursor:pointer}
+  .filter button.on{background:#111;color:#fff;border-color:#111}
+  .card{display:flex;align-items:center;gap:10px;border:1px solid #ccc;border-radius:6px;padding:10px;margin-bottom:8px}
+  .card.done{background:#f3f3f3;border-color:#111}
+  .card input[type=checkbox]{width:22px;height:22px;flex:none}
+  .info{flex:1;min-width:0}
+  .name{font-weight:600;font-size:15px}
+  .card.done .name{text-decoration:line-through;color:#666}
+  .use{width:100%;border:0;border-bottom:1px dashed #bbb;font-size:13px;padding:3px 0;margin-top:2px;background:transparent;color:#444}
+  .deal{flex:none;font-size:12px;padding:6px 10px;border:1px solid #111;border-radius:4px;background:#fff;cursor:pointer;color:#111;text-decoration:none}
+  h2{font-size:15px;margin:24px 0 8px;border-bottom:2px solid #111;padding-bottom:4px}
+  textarea{width:100%;height:160px;padding:8px;font-size:14px;border:1px solid #999;border-radius:4px;font-family:inherit}
+  .btn{width:100%;padding:10px;font-size:14px;border:1px solid #111;border-radius:4px;background:#fff;cursor:pointer;margin-top:8px}
+  .btn.dark{background:#111;color:#fff}
+  details{margin-top:16px}
+  summary{cursor:pointer;font-size:14px;font-weight:600}
+  .note{font-size:11px;color:#777;margin-top:16px;line-height:1.6}
+  #setup{display:none}
+</style>
+</head>
+<body>
+<h1>信用卡每月檢查</h1>
+<p class="sub">每張卡每月至少一筆交易</p>
+
+<div id="setup">
+  <h2>第一次使用:貼上卡片清單</h2>
+  <textarea id="setupList" placeholder="一行一張卡"></textarea>
+  <button class="btn dark" onclick="saveList('setupList')">建立清單</button>
+</div>
+
+<div id="main">
+  <div class="month">
+    <button onclick="shift(-1)">‹</button>
+    <span id="monthLabel"></span>
+    <button onclick="shift(1)">›</button>
+  </div>
+  <div class="progress"><span id="prog"></span><span id="pct"></span></div>
+  <div class="bar"><div id="barIn"></div></div>
+
+  <div class="filter">
+    <button class="on" data-f="all" onclick="setFilter('all')">全部</button>
+    <button data-f="todo" onclick="setFilter('todo')">未刷</button>
+    <button data-f="done" onclick="setFilter('done')">已刷</button>
+  </div>
+
+  <div id="list"></div>
+
+  <details>
+    <summary>編輯卡片清單</summary>
+    <textarea id="editList"></textarea>
+    <button class="btn" onclick="saveList('editList')">儲存清單</button>
+  </details>
+
+  <details>
+    <summary>備份與還原</summary>
+    <p class="note">資料只存在這台裝置的瀏覽器。換手機或清除瀏覽資料前，請先複製備份碼存起來。</p>
+    <button class="btn" onclick="backup()">複製備份碼</button>
+    <textarea id="restoreBox" placeholder="貼上備份碼" style="height:80px;margin-top:8px"></textarea>
+    <button class="btn" onclick="restore()">還原</button>
+  </details>
+</div>
+
+<p class="note">
+查優惠會開啟該卡名稱加上本年度的搜尋結果，優惠內容請以銀行官網公告為準。<br>
+用途欄可記錄固定扣款項目，修改後自動儲存。
+</p>
+
+<script>
+  const KEY = 'card-check-v1';
+  let state = load();
+  let cur = ym(new Date());
+  let filter = 'all';
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)) || { cards:[], uses:{}, months:{} }; }
+    catch(e){ return { cards:[], uses:{}, months:{} }; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+  function ym(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+  function shift(n){
+    const [y,m] = cur.split('-').map(Number);
+    cur = ym(new Date(y, m-1+n, 1));
+    render();
+  }
+
+  function setFilter(f){
+    filter = f;
+    document.querySelectorAll('.filter button').forEach(b=>b.classList.toggle('on', b.dataset.f===f));
+    render();
+  }
+
+  function saveList(id){
+    const names = [...new Set(document.getElementById(id).value.split('\n').map(s=>s.trim()).filter(Boolean))];
+    if(!names.length) return;
+    state.cards = names;
+    save();
+    render();
+  }
+
+  function toggle(name, on){
+    state.months[cur] = state.months[cur] || {};
+    if(on) state.months[cur][name] = true; else delete state.months[cur][name];
+    save();
+    render();
+  }
+
+  function setUse(name, v){
+    state.uses[name] = v;
+    save();
+  }
+
+  function dealUrl(name){
+    const y = new Date().getFullYear();
+    return 'https://www.google.com/search?q=' + encodeURIComponent(`${name} ${y} 最新優惠`);
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function render(){
+    const has = state.cards.length > 0;
+    document.getElementById('setup').style.display = has ? 'none' : 'block';
+    document.getElementById('main').style.display = has ? 'block' : 'none';
+    if(!has) return;
+
+    const [y,m] = cur.split('-');
+    document.getElementById('monthLabel').textContent = `${y}年${Number(m)}月`;
+    const done = state.months[cur] || {};
+    const n = state.cards.length;
+    const d = state.cards.filter(c=>done[c]).length;
+    const p = Math.round(d/n*100);
+    document.getElementById('prog').textContent = `已刷${d}/${n}張，剩${n-d}張`;
+    document.getElementById('pct').textContent = p + '%';
+    document.getElementById('barIn').style.width = p + '%';
+
+    const shown = state.cards.filter(c => filter==='all' || (filter==='done') === !!done[c]);
+    document.getElementById('list').innerHTML = shown.map(c=>`
+      <div class="card ${done[c]?'done':''}">
+        <input type="checkbox" ${done[c]?'checked':''} data-n="${esc(c)}" onchange="toggle(this.dataset.n, this.checked)">
+        <div class="info">
+          <div class="name">${esc(c)}</div>
+          <input class="use" placeholder="用途,例:電信費自動扣繳" value="${esc(state.uses[c]||'')}" data-n="${esc(c)}" oninput="setUse(this.dataset.n, this.value)">
+        </div>
+        <a class="deal" href="${dealUrl(c)}" target="_blank" rel="noopener">查優惠</a>
+      </div>`).join('') || '<p class="note">沒有符合的卡片</p>';
+
+    document.getElementById('editList').value = state.cards.join('\n');
+  }
+
+  function backup(){
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+    navigator.clipboard.writeText(code).then(()=>alert('備份碼已複製'));
+  }
+  function restore(){
+    try{
+      const s = JSON.parse(decodeURIComponent(escape(atob(document.getElementById('restoreBox').value.trim()))));
+      if(!Array.isArray(s.cards)) throw 0;
+      state = { cards:s.cards, uses:s.uses||{}, months:s.months||{} };
+      save(); render(); alert('還原完成');
+    }catch(e){ alert('備份碼格式錯誤'); }
+  }
+
+  render();
+</script>
+</body>
+</html>
