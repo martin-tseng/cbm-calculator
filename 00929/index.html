@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>00929月配息</title>
+<style>
+  /* 單欄、黑白、數字優先；與cards.html同一套樣式 */
+  :root{--fg:#111;--sub:#666;--line:#ddd;--soft:#f5f5f5;--bg:#fff}
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--fg);margin:0 auto;padding:16px;max-width:600px;font-variant-numeric:tabular-nums}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{font-size:12px;color:var(--sub);margin:0 0 14px}
+  label{display:block;font-size:13px;color:var(--sub);margin-bottom:4px}
+  .inp{display:flex;gap:8px;align-items:center}
+  #shares{flex:1;min-width:0;padding:10px;font-size:20px;border:2px solid var(--fg);border-radius:6px;font-family:inherit;font-variant-numeric:tabular-nums}
+  #shares:focus{outline:3px solid #999;outline-offset:1px}
+  .lots{font-size:13px;color:var(--sub);white-space:nowrap}
+  .hero{margin:16px 0 4px}
+  .hero .k{font-size:13px;color:var(--sub)}
+  .hero .v{font-size:40px;font-weight:700;line-height:1.15}
+  .hero .v small{font-size:16px;font-weight:600}
+  .hero .n{font-size:12px;color:var(--sub)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line);margin-top:12px}
+  .cell{padding:10px 0;border-bottom:1px solid var(--line)}
+  .cell:nth-child(odd){padding-right:10px}
+  .cell .k{font-size:12px;color:var(--sub)}
+  .cell .v{font-size:18px;font-weight:700}
+  .cell .n{font-size:11px;color:var(--sub)}
+  h2{font-size:15px;margin:22px 0 8px}
+  .box{border:2px solid var(--fg);border-radius:8px;padding:12px}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+  .row:first-of-type{border-top:0}
+  .row b{font-size:16px}
+  .tag{display:inline-block;font-size:11px;padding:0 6px;border:1px solid var(--fg);border-radius:8px;margin-left:4px;vertical-align:1px}
+  .pay{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+  .pay:first-child{border-top:0}
+  .pay .d{font-size:15px;font-weight:700}
+  .pay .m{font-size:12px;color:var(--sub)}
+  .pay .amt{font-size:22px;font-weight:700;text-align:right}
+  .pay .amt small{display:block;font-size:11px;font-weight:400;color:var(--sub)}
+  .tbl{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{font-size:12px;color:var(--sub);font-weight:600}
+  tr.future td{font-weight:700}
+  .note{font-size:12px;color:var(--sub);line-height:1.6;margin-top:18px}
+  .note p{margin:0 0 6px}
+  .err{border:1px solid var(--fg);background:var(--soft);padding:10px;border-radius:6px;font-size:13px}
+  a{color:var(--fg)}
+</style>
+</head>
+<body>
+<h1>00929月配息</h1>
+<p class="sub" id="meta">復華台灣科技優息｜讀取資料中</p>
+
+<label for="shares">持有股數</label>
+<div class="inp">
+  <input id="shares" type="number" inputmode="numeric" min="0" step="1" placeholder="例如5000">
+  <span class="lots" id="lots">0張</span>
+</div>
+
+<div id="app"></div>
+
+<div class="note">
+  <p>每月可領=持有股數×最新一次每單位配息，實際金額以投信公告與入帳為準。00929配息每月可能調整。</p>
+  <p>要領到某次配息，須在除息日前一個交易日(含)以前持有；最後買進日只排除週末，遇國定假日請再往前推。</p>
+  <p>單次入帳達20,000元時，股利所得部分可能被扣二代健保補充保費2.11%；00929配息中屬股利所得的比例每次不同，這裡只列出可能被扣的上限。</p>
+  <p>股數只存在這台裝置的瀏覽器，不會上傳。資料每個交易日14:40與20:40自動更新(證交所、FinMind)。</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (n, d = 0) => n.toLocaleString('zh-TW', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const W = '日一二三四五六';
+function showDate(s) {
+  const d = new Date(s + 'T00:00:00');
+  return `${d.getMonth() + 1}/${d.getDate()}(${W[d.getDay()]})`;
+}
+function daysTo(s, today) {
+  return Math.round((new Date(s + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400e3);
+}
+function lastBuy(ex) {
+  const d = new Date(ex + 'T00:00:00');
+  do d.setDate(d.getDate() - 1); while (d.getDay() === 0 || d.getDay() === 6);
+  return iso(d);
+}
+// 台北時間的今天
+function todayTpe() {
+  const t = new Date(Date.now() + (new Date().getTimezoneOffset() + 480) * 60e3);
+  return iso(t);
+}
+
+let DATA = null;
+
+function load() {
+  try { const v = localStorage.getItem('00929-shares'); if (v) $('shares').value = v; } catch (e) {}
+}
+function save(v) {
+  try { localStorage.setItem('00929-shares', v); } catch (e) {}
+}
+
+function render() {
+  const shares = Math.max(0, Math.floor(Number($('shares').value) || 0));
+  $('lots').textContent = `${fmt(shares / 1000, shares % 1000 ? 3 : 0)}張`;
+  if (!DATA) return;
+
+  const today = todayTpe();
+  const divs = [...DATA.dividends].sort((a, b) => a.exDate.localeCompare(b.exDate));
+  const latest = divs[divs.length - 1];
+  const price = DATA.price.price;
+  const monthly = shares * latest.amount;
+  const yieldPct = latest.amount * 12 / price * 100;
+  const nextEx = divs.find(d => d.exDate >= today);
+  const upcoming = divs.filter(d => (d.payDate && d.payDate >= today) || (!d.payDate && d.exDate >= today));
+
+  let h = '';
+  h += `<div class="hero"><div class="k">每月約可領</div>
+    <div class="v">${fmt(monthly)}<small> 元</small></div>
+    <div class="n">${fmt(shares)}股×${fmt(latest.amount, 2)}元(${showDate(latest.exDate)}除息那次)</div></div>`;
+
+  h += `<div class="grid">
+    <div class="cell"><div class="k">收盤價</div><div class="v">${fmt(price, 2)}</div><div class="n">${showDate(DATA.price.date)}｜${DATA.price.source}</div></div>
+    <div class="cell"><div class="k">持有市值</div><div class="v">${fmt(shares * price)}</div><div class="n">元</div></div>
+    <div class="cell"><div class="k">一年約可領</div><div class="v">${fmt(monthly * 12)}</div><div class="n">最新配息×12個月</div></div>
+    <div class="cell"><div class="k">年化配息率</div><div class="v">${fmt(yieldPct, 2)}%</div><div class="n">最新配息×12÷收盤價</div></div>
+  </div>`;
+
+  h += `<h2>下次除息</h2>`;
+  if (nextEx) {
+    const lb = lastBuy(nextEx.exDate);
+    const dd = daysTo(nextEx.exDate, today);
+    h += `<div class="box">
+      <div class="row"><span>除息日</span><b>${showDate(nextEx.exDate)}${dd === 0 ? '<span class="tag">今天</span>' : `<span class="tag">${dd}天後</span>`}</b></div>
+      <div class="row"><span>最後買進日</span><b>${showDate(lb)}</b></div>
+      <div class="row"><span>每單位配息</span><b>${fmt(nextEx.amount, 2)}元</b></div>
+      <div class="row"><span>發放日</span><b>${nextEx.payDate ? showDate(nextEx.payDate) : '待公告'}</b></div>
+      <div class="row"><span>你可領</span><b>${fmt(shares * nextEx.amount)}元</b></div>
+    </div>`;
+  } else {
+    h += `<div class="box"><div class="row"><span>下個月配息尚未公告</span><b>通常月初公告</b></div></div>`;
+  }
+
+  h += `<h2>即將入帳</h2>`;
+  if (upcoming.length) {
+    h += `<div class="box">` + upcoming.map(d => {
+      const amt = shares * d.amount;
+      const nhi = amt >= 20000 ? `<small>二代健保最多扣${fmt(amt * 0.0211)}元</small>` : '';
+      const when = d.payDate ? `${showDate(d.payDate)}入帳<span class="tag">${daysTo(d.payDate, today)}天後</span>` : '發放日待公告';
+      return `<div class="pay"><div><div class="d">${when}</div><div class="m">${showDate(d.exDate)}除息｜每單位${fmt(d.amount, 2)}元</div></div>
+        <div class="amt">${fmt(amt)}元${nhi}</div></div>`;
+    }).join('') + `</div>`;
+  } else {
+    h += `<div class="box"><div class="row"><span>目前沒有待入帳的配息</span></div></div>`;
+  }
+
+  h += `<h2>配息紀錄</h2><div class="tbl"><table>
+    <thead><tr><th>除息日</th><th>發放日</th><th>每單位</th><th>你可領</th></tr></thead><tbody>` +
+    divs.slice().reverse().slice(0, 14).map(d => `<tr class="${d.exDate >= today ? 'future' : ''}">
+      <td>${d.exDate.replace(/-/g, '/')}</td><td>${d.payDate ? d.payDate.slice(5).replace('-', '/') : '待公告'}</td>
+      <td>${fmt(d.amount, 2)}</td><td>${fmt(shares * d.amount)}</td></tr>`).join('') +
+    `</tbody></table></div>`;
+
+  $('app').innerHTML = h;
+}
+
+$('shares').addEventListener('input', e => { save(e.target.value); render(); });
+load();
+render();
+
+fetch('data.json?t=' + Date.now(), { cache: 'no-store' })
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(j => {
+    DATA = j;
+    const u = new Date(j.updatedAt);
+    $('meta').textContent = `${j.name}｜資料更新${u.getMonth() + 1}/${u.getDate()} ${pad(u.getHours())}:${pad(u.getMinutes())}`;
+    render();
+  })
+  .catch(e => {
+    $('meta').textContent = '復華台灣科技優息';
+    $('app').innerHTML = `<p class="err">讀不到配息資料(${e.message})。請重新整理頁面；若持續發生，可能是自動更新故障。</p>`;
+  });
+</script>
+</body>
+</html>

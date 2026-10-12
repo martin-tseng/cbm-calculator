@@ -26,3 +26,13 @@
 - 新增或修改城市：編輯travel/cities.js的CITIES，一個城市一行
 - status：visited已去、planned計畫中、wish願望
 - 行政區邊界資料：travel/regions.json(Natural Earth一級行政區，已簡化)
+
+## 00929月配息(00929/)
+輸入持有股數，計算每月可領配息、下次除息日、即將入帳金額。
+
+- 網址：https://martin-tseng.github.io/cbm-calculator/00929/
+- 資料：00929/data.json，由.github/workflows/update-00929.yml每個交易日14:40與20:40執行scripts/update-00929.mjs自動更新
+- 股價來源：證交所個股日成交資訊，失敗時改用FinMind
+- 配息來源：FinMind股利政策(含發放日)、證交所除權除息預告表；抓不到時保留原資料
+- 股數只存在瀏覽器localStorage，不進repo
+- 手動更新：GitHub上Actions→更新00929資料→Run workflow
