@@ -2,16 +2,148 @@
   "code": "00929",
   "name": "復華台灣科技優息",
   "price": {
-    "price": 29.59,
-    "date": "2026-10-01",
-    "source": "新聞參考價(初始資料)"
+    "price": 30.03,
+    "date": "2026-10-08",
+    "source": "臺灣證券交易所"
   },
   "dividends": [
-    { "exDate": "2026-06-17", "payDate": "2026-07-13", "amount": 0.26, "source": "新聞(初始資料)" },
-    { "exDate": "2026-08-19", "payDate": "2026-09-14", "amount": 0.38, "source": "新聞(初始資料)" },
-    { "exDate": "2026-09-17", "payDate": "2026-10-16", "amount": 0.38, "source": "新聞(初始資料)" },
-    { "exDate": "2026-10-21", "payDate": "2026-11-16", "amount": 0.38, "source": "新聞(初始資料)" }
+    {
+      "exDate": "2025-01-16",
+      "payDate": "2025-02-17",
+      "amount": 0.05,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-02-19",
+      "payDate": "2025-03-18",
+      "amount": 0.05,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-03-19",
+      "payDate": "2025-04-16",
+      "amount": 0.05,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-04-22",
+      "payDate": "2025-05-19",
+      "amount": 0.05,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-05-20",
+      "payDate": "2025-06-16",
+      "amount": 0.07,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-06-18",
+      "payDate": "2025-07-14",
+      "amount": 0.07,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-07-17",
+      "payDate": "2025-08-12",
+      "amount": 0.07,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-08-19",
+      "payDate": "2025-09-12",
+      "amount": 0.08,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-09-17",
+      "payDate": "2025-10-15",
+      "amount": 0.08,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-10-21",
+      "payDate": "2025-11-14",
+      "amount": 0.08,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-11-19",
+      "payDate": "2025-12-15",
+      "amount": 0.09,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2025-12-17",
+      "payDate": "2026-01-14",
+      "amount": 0.09,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-01-20",
+      "payDate": "2026-02-13",
+      "amount": 0.1,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-03-03",
+      "payDate": "2026-03-27",
+      "amount": 0.1,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-03-18",
+      "payDate": "2026-04-15",
+      "amount": 0.11,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-04-21",
+      "payDate": "2026-05-18",
+      "amount": 0.13,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-05-20",
+      "payDate": "2026-06-15",
+      "amount": 0.13,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-06-17",
+      "payDate": "2026-07-13",
+      "amount": 0.26,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-07-21",
+      "payDate": "2026-08-14",
+      "amount": 0.38,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-08-19",
+      "payDate": "2026-09-14",
+      "amount": 0.38,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-09-17",
+      "payDate": "2026-10-16",
+      "amount": 0.38,
+      "source": "FinMind"
+    },
+    {
+      "exDate": "2026-10-21",
+      "payDate": "2026-11-16",
+      "amount": 0.38,
+      "source": "新聞(初始資料)"
+    }
   ],
-  "updatedAt": "2026-10-12T05:30:00Z",
-  "log": []
+  "updatedAt": "2026-10-12T05:29:30.300Z",
+  "log": [
+    "TWSE股價:2026-10-08 30.03",
+    "FinMind配息:21筆",
+    "TWSE除息預告:1筆"
+  ]
 }
