@@ -62,6 +62,30 @@
   .mid{width:30px;margin-bottom:78px;animation:beat 1.3s ease-in-out infinite}
   .hint{font-size:10px;margin-top:2px;letter-spacing:.2em;color:rgba(74,46,31,.4)}
 
+  /* 小遊戲 */
+  .play{margin-top:12px;padding:10px 22px;border:0;border-radius:999px;background:linear-gradient(135deg,#d99a4e,#b5643a);color:#fff;font-family:inherit;font-size:14px;letter-spacing:.15em;box-shadow:0 6px 16px rgba(181,100,58,.3);cursor:pointer;animation:up 1.2s 1.2s both}
+  .play:active{transform:scale(.96)}
+  #game{position:fixed;inset:0;z-index:10;display:none;background:linear-gradient(180deg,#fff3e6 0%,#fde3cc 50%,#f6bf9c 100%);touch-action:none}
+  #game.on{display:block}
+  #gc{position:absolute;inset:0;width:100%;height:100%}
+  .hud{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;font-family:"Cormorant Garamond",serif;font-weight:700;color:var(--ink);pointer-events:none}
+  .hud .sc{font-size:34px}
+  .hud .tm{font-size:22px;color:var(--terra)}
+  .tbar{position:absolute;top:calc(env(safe-area-inset-top) + 58px);left:16px;right:16px;height:4px;border-radius:2px;background:rgba(181,100,58,.15);pointer-events:none}
+  .tbar div{height:100%;border-radius:2px;background:linear-gradient(90deg,#e3ad62,#b5643a)}
+  .xclose{position:absolute;top:calc(env(safe-area-inset-top) + 70px);right:12px;width:36px;height:36px;border:0;border-radius:50%;background:rgba(255,250,243,.7);color:var(--ink);font-size:18px;cursor:pointer}
+  .panel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:min(340px,100%);background:rgba(255,250,243,.92);border-radius:20px;padding:26px 22px;text-align:center;box-shadow:0 12px 40px rgba(120,60,30,.18)}
+  .card h2{font-family:"Noto Serif TC",serif;font-size:22px;letter-spacing:.15em;margin-bottom:12px}
+  .card .rules{font-size:14px;line-height:2;color:rgba(74,46,31,.8);margin-bottom:6px}
+  .card .big{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:72px;line-height:1;color:var(--terra)}
+  .card .best{font-size:13px;color:rgba(74,46,31,.6);margin:8px 0 16px}
+  .card .rec{display:inline-block;font-size:12px;letter-spacing:.1em;color:#fff;background:#e8807a;border-radius:999px;padding:3px 10px;margin-bottom:6px}
+  .card .btns{display:flex;gap:10px;justify-content:center}
+  .card button{padding:10px 20px;border-radius:999px;font-family:inherit;font-size:14px;letter-spacing:.1em;cursor:pointer;border:1px solid var(--terra);background:transparent;color:var(--terra)}
+  .card button.go{background:linear-gradient(135deg,#d99a4e,#b5643a);color:#fff;border:0}
+  .hide{display:none!important}
+
   @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   @keyframes rise{from{opacity:0;transform:translate(-50%,40px)}to{opacity:1;transform:translate(-50%,0)}}
   @keyframes shine{to{background-position:200% center}}
@@ -129,6 +153,7 @@
   </div>
   <p class="msg" id="msg"></p>
   <p class="hint">輕觸矮袋鼠或畫面</p>
+  <button class="play" id="playBtn">玩小遊戲:接尤加利葉</button>
 </main>
 
 <div class="couple">
@@ -157,6 +182,26 @@
       <circle cx="0" cy="-1" r="3" fill="#f2c46a"/>
     </g>
   </svg></div>
+</div>
+
+<div id="game">
+  <canvas id="gc"></canvas>
+  <div class="hud"><div class="sc" id="gScore">0</div><div class="tm" id="gTime">30.0</div></div>
+  <div class="tbar"><div id="gBar" style="width:100%"></div></div>
+  <button class="xclose" id="gClose" aria-label="關閉">×</button>
+  <div class="panel" id="gStart"><div class="card">
+    <h2>接尤加利葉</h2>
+    <div class="rules">左右滑動移動矮袋鼠<br>尤加利葉+1 愛心+3 戒指+5<br>碰到蟲子-3 限時30秒</div>
+    <div class="best" id="gBest1"></div>
+    <div class="btns"><button class="go" id="gGo">開始</button></div>
+  </div></div>
+  <div class="panel hide" id="gEnd"><div class="card">
+    <div class="rec hide" id="gRec">新紀錄</div>
+    <h2>本次得分</h2>
+    <div class="big" id="gFinal">0</div>
+    <div class="best" id="gBest2"></div>
+    <div class="btns"><button id="gBack">回倒數</button><button class="go" id="gAgain">再玩一次</button></div>
+  </div></div>
 </div>
 
 <script>
@@ -341,7 +386,226 @@ function drawFx(){
   fxx.globalAlpha = 1;
 }
 
-addEventListener('pointerdown', e => burst(e.clientX, e.clientY));
+// ===== 小遊戲:接尤加利葉 =====
+let gameOpen = false;
+(() => {
+  const ov = $('game'), cv = $('gc'), g = cv.getContext('2d');
+  const BEST_KEY = 'quokkaCatchBest';
+  const getBest = () => { try { return +localStorage.getItem(BEST_KEY) || 0; } catch(e) { return 0; } };
+  const setBest = v => { try { localStorage.setItem(BEST_KEY, v); } catch(e) {} };
+  const DUR = 30;
+  const TYPES = [
+    {k:'leaf', p:.6, pts:1},
+    {k:'heart', p:.17, pts:3},
+    {k:'ring', p:.05, pts:5},
+    {k:'bug', p:.18, pts:-3},
+  ];
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">${$('quokka').innerHTML}<path d="M100 121l-15-9v18zM100 121l15-9v18z" fill="#2e2926"/><circle cx="100" cy="121" r="4.5" fill="#4a2e1f"/></svg>`);
+
+  let w, h, dp, run = false, items = [], pops = [], score = 0, t0 = 0, last = 0, spawnAcc = 0;
+  let qx = 0, tx = 0, qv = 0, squash = 0, shake = 0, raf = 0;
+  const QW = () => Math.min(120, w * .27), QH = () => QW() * 1.3;
+  const qy = () => h - QH() - Math.max(16, h * .03);
+
+  function size(){
+    dp = Math.min(devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
+    cv.width = w * dp; cv.height = h * dp;
+    g.setTransform(dp, 0, 0, dp, 0, 0);
+  }
+  function showBest(){
+    const b = getBest();
+    $('gBest1').textContent = b ? `最高分 ${b}` : '';
+    $('gBest2').textContent = `最高分 ${b}`;
+  }
+  function open(){
+    gameOpen = true; ov.classList.add('on'); size();
+    qx = tx = w / 2; items = []; pops = []; score = 0;
+    $('gScore').textContent = 0; $('gTime').textContent = DUR.toFixed(1); $('gBar').style.width = '100%';
+    $('gStart').classList.remove('hide'); $('gEnd').classList.add('hide');
+    showBest();
+    cancelAnimationFrame(raf); idle();
+  }
+  function close(){ run = false; gameOpen = false; ov.classList.remove('on'); cancelAnimationFrame(raf); }
+  function start(){
+    $('gStart').classList.add('hide'); $('gEnd').classList.add('hide');
+    items = []; pops = []; score = 0; $('gScore').textContent = 0;
+    run = true; t0 = last = performance.now(); spawnAcc = 0;
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+  }
+  function end(){
+    run = false;
+    const best = getBest(), rec = score > best;
+    if (rec) setBest(score);
+    $('gFinal').textContent = score;
+    $('gRec').classList.toggle('hide', !rec || score === 0);
+    showBest();
+    $('gEnd').classList.remove('hide');
+    if (rec && score > 0) for (let i = 0; i < 4; i++) setTimeout(() => burstAt(w * (.2 + Math.random() * .6), h * (.15 + Math.random() * .2)), i * 250);
+    idle();
+  }
+  // 結束畫面也保持動態
+  function idle(){
+    const step = () => { if (run || !gameOpen) return; draw(1 / 60, false); raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+  }
+
+  function pick(){
+    let r = Math.random();
+    for (const t of TYPES) { if ((r -= t.p) < 0) return t; }
+    return TYPES[0];
+  }
+  function spawn(prog){
+    const t = pick(), sc = QW() / 110;
+    items.push({t, x:24 + Math.random() * (w - 48), y:-30, s:(t.k === 'leaf' ? 13 : 12) * sc,
+      vy:h * (.32 + prog * .45) * (.85 + Math.random() * .3), rot:Math.random() * 6.28, vr:(Math.random() - .5) * 3, ph:Math.random() * 6.28});
+  }
+  function pop(x, y, text, color){ pops.push({x, y, text, color, life:1}); }
+  const sparksG = [];
+  function burstAt(x, y){
+    for (let i = 0; i < 50; i++) {
+      const a = Math.random() * 6.28, sp = Math.random() * 260 + 80;
+      sparksG.push({x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 80, life:1, c:COLORS[Math.floor(Math.random() * COLORS.length)], s:Math.random() * 4 + 3, heart:Math.random() < .2});
+    }
+  }
+  function sparkle(x, y, c, n){
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.28, sp = Math.random() * 120 + 40;
+      sparksG.push({x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 60, life:.7, c, s:Math.random() * 3 + 2, heart:false});
+    }
+  }
+
+  function frame(now){
+    if (!run) return;
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const el = (now - t0) / 1000, left = Math.max(0, DUR - el), prog = Math.min(1, el / DUR);
+    $('gTime').textContent = left.toFixed(1);
+    $('gBar').style.width = (left / DUR * 100) + '%';
+    spawnAcc += dt;
+    const interval = .62 - prog * .32;
+    while (spawnAcc > interval) { spawnAcc -= interval; spawn(prog); }
+    draw(dt, true);
+    if (left <= 0) { end(); return; }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function draw(dt, live){
+    const qw = QW(), qh = QH(), y0 = qy();
+    // 移動
+    const prev = qx;
+    qx += (tx - qx) * Math.min(1, dt * 14);
+    qx = Math.max(qw * .4, Math.min(w - qw * .4, qx));
+    qv = (qx - prev) / Math.max(dt, .001);
+    squash = Math.max(0, squash - dt * 4);
+    shake = Math.max(0, shake - dt * 3);
+
+    g.clearRect(0, 0, w, h);
+
+    // 掉落物
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      it.y += it.vy * dt; it.rot += it.vr * dt; it.ph += dt * 3;
+      const x = it.x + Math.sin(it.ph) * (it.t.k === 'leaf' ? 14 : 4);
+      if (live && it.y > y0 + qh * .05 && it.y < y0 + qh * .4 && Math.abs(x - qx) < qw * .42) {
+        items.splice(i, 1);
+        score = Math.max(0, score + it.t.pts);
+        $('gScore').textContent = score;
+        if (it.t.k === 'bug') { shake = 1; pop(x, y0, '-3', '#7a4a3a'); try { navigator.vibrate && navigator.vibrate(80); } catch(e) {} }
+        else { squash = 1; pop(x, y0, '+' + it.t.pts, it.t.k === 'leaf' ? '#5e8a68' : (it.t.k === 'heart' ? '#e8807a' : '#c48a3a')); sparkle(x, y0 + qh * .15, it.t.k === 'leaf' ? '#7f9f86' : (it.t.k === 'heart' ? '#f6b3b0' : '#f2c46a'), it.t.k === 'ring' ? 18 : 8); }
+        continue;
+      }
+      if (it.y > h + 40) { items.splice(i, 1); continue; }
+      drawItem(it, x);
+    }
+
+    // 矮袋鼠
+    if (img.complete) {
+      g.save();
+      const sx = shake ? Math.sin(shake * 40) * 6 * shake : 0;
+      g.translate(qx + sx, y0 + qh);
+      g.rotate(Math.max(-.18, Math.min(.18, qv / 4000)));
+      g.scale(1 + squash * .08, 1 - squash * .1);
+      g.drawImage(img, -qw / 2, -qh, qw, qh);
+      g.restore();
+    }
+
+    // 粒子與分數提示
+    for (let i = sparksG.length - 1; i >= 0; i--) {
+      const p = sparksG[i];
+      p.vx *= .96; p.vy = p.vy * .96 + 400 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt * .9;
+      if (p.life <= 0) { sparksG.splice(i, 1); continue; }
+      g.globalAlpha = Math.min(1, p.life * 1.5); g.fillStyle = p.c;
+      if (p.heart) { g.save(); g.translate(p.x, p.y); heartPath(g, p.s * .8); g.restore(); }
+      else { g.beginPath(); g.arc(p.x, p.y, p.s * .5, 0, 6.28); g.fill(); }
+    }
+    g.globalAlpha = 1;
+    g.textAlign = 'center';
+    g.font = '700 28px "Cormorant Garamond",serif';
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const p = pops[i];
+      p.life -= dt * 1.4; p.y -= dt * 60;
+      if (p.life <= 0) { pops.splice(i, 1); continue; }
+      g.globalAlpha = p.life; g.fillStyle = p.color;
+      g.fillText(p.text, p.x, p.y);
+    }
+    g.globalAlpha = 1;
+  }
+
+  function drawItem(it, x){
+    const s = it.s;
+    g.save(); g.translate(x, it.y);
+    if (it.t.k === 'leaf') {
+      g.rotate(it.rot);
+      g.fillStyle = '#6f9878';
+      g.beginPath(); g.moveTo(0, -s * 1.4); g.quadraticCurveTo(s * .75, 0, 0, s * 1.4); g.quadraticCurveTo(-s * .75, 0, 0, -s * 1.4); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(0, -s * 1.2); g.lineTo(0, s * 1.2); g.stroke();
+    } else if (it.t.k === 'heart') {
+      g.rotate(Math.sin(it.ph) * .25);
+      g.fillStyle = '#e8807a'; g.translate(0, -s * .6); heartPath(g, s);
+    } else if (it.t.k === 'ring') {
+      g.rotate(Math.sin(it.ph) * .3);
+      g.strokeStyle = '#d99a4e'; g.lineWidth = s * .28;
+      g.beginPath(); g.arc(0, s * .25, s * .7, 0, 6.28); g.stroke();
+      g.fillStyle = '#eaf6ff'; g.strokeStyle = '#9fc6dc'; g.lineWidth = 1.2;
+      g.beginPath(); g.moveTo(0, -s * 1.15); g.lineTo(s * .45, -s * .7); g.lineTo(0, -s * .35); g.lineTo(-s * .45, -s * .7); g.closePath(); g.fill(); g.stroke();
+      g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(-s * .12, -s * .78, s * .08, 0, 6.28); g.fill();
+    } else {
+      // 蟲子
+      g.rotate(Math.sin(it.ph * 2) * .2);
+      g.strokeStyle = '#3b2f2a'; g.lineWidth = 1.6;
+      for (const sy of [-.3, .1, .5]) for (const d of [-1, 1]) { g.beginPath(); g.moveTo(0, s * sy); g.lineTo(d * s * 1, s * (sy + .2)); g.stroke(); }
+      g.fillStyle = '#4a3a33'; g.beginPath(); g.ellipse(0, s * .15, s * .6, s * .75, 0, 0, 6.28); g.fill();
+      g.fillStyle = '#2e2926'; g.beginPath(); g.arc(0, -s * .65, s * .38, 0, 6.28); g.fill();
+      g.strokeStyle = '#2e2926'; g.beginPath(); g.moveTo(-s * .15, -s * .95); g.lineTo(-s * .4, -s * 1.3); g.moveTo(s * .15, -s * .95); g.lineTo(s * .4, -s * 1.3); g.stroke();
+      g.fillStyle = '#fff'; g.beginPath(); g.arc(-s * .14, -s * .7, s * .1, 0, 6.28); g.arc(s * .14, -s * .7, s * .1, 0, 6.28); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, -s * .5); g.lineTo(0, s * .85); g.stroke();
+    }
+    g.restore();
+  }
+
+  // 操作:觸控拖曳或鍵盤左右
+  cv.addEventListener('pointerdown', e => { tx = e.clientX; });
+  cv.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || e.buttons || e.pressure) tx = e.clientX; });
+  addEventListener('keydown', e => {
+    if (!gameOpen) return;
+    if (e.key === 'ArrowLeft') tx = Math.max(0, qx - w * .18);
+    if (e.key === 'ArrowRight') tx = Math.min(w, qx + w * .18);
+    if (e.key === 'Escape') close();
+  });
+  for (const el of ['playBtn','gGo','gAgain','gBack','gClose']) $(el).addEventListener('pointerdown', e => e.stopPropagation());
+  $('playBtn').addEventListener('click', open);
+  $('gGo').addEventListener('click', start);
+  $('gAgain').addEventListener('click', start);
+  $('gBack').addEventListener('click', close);
+  $('gClose').addEventListener('click', close);
+  addEventListener('resize', () => { if (gameOpen) size(); });
+})();
+
+addEventListener('pointerdown', e => { if (!gameOpen) burst(e.clientX, e.clientY); });
 addEventListener('resize', resize);
 resize();
 

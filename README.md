@@ -32,6 +32,8 @@
 
 - 網址：https://martin-tseng.github.io/cbm-calculator/wedding/
 - 修改時間：編輯wedding/index.html的WEDDING常數(台灣時間+08:00)
+- 小遊戲:接尤加利葉，左右滑動矮袋鼠接掉落物，尤加利葉+1、愛心+3、戒指+5、蟲子-3，限時30秒；最高分只存在瀏覽器localStorage
+- 掉落物比例與分數在TYPES常數，遊戲秒數在DUR常數
 
 ## 00929月配息(00929/)
 輸入持有股數，計算每月可領配息、下次除息日、即將入帳金額。
