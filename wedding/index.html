@@ -3,69 +3,113 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b0a10">
+<meta name="theme-color" content="#fde9d6">
 <title>婚禮倒數</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{--g1:#fbefc8;--g2:#d9b25a;--g3:#9a7228;--rose:#e9b9b5}
+  :root{--ink:#4a2e1f;--terra:#b5643a;--gold:#d99a4e;--sage:#7f9f86}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
-  body{background:radial-gradient(ellipse at 50% 28%,#2c2030 0%,#140f19 50%,#07060a 100%);color:#f3ead7;font-family:"Noto Serif TC",serif;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
+  body{background:linear-gradient(180deg,#fff3e6 0%,#fde3cc 40%,#f8c9a8 75%,#f2b08d 100%);color:var(--ink);font-family:"Noto Serif TC",serif;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
   canvas{position:fixed;inset:0;width:100%;height:100%}
   #bg{z-index:0}
-  #fx{z-index:3;pointer-events:none}
-  main{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;text-align:center}
+  #fx{z-index:4;pointer-events:none}
+  .sun{position:fixed;left:50%;top:58%;width:130vmax;height:130vmax;transform:translate(-50%,-50%);z-index:0;border-radius:50%;background:radial-gradient(circle,rgba(255,236,200,.75) 0%,rgba(255,220,180,.25) 30%,transparent 60%);animation:pulse 8s ease-in-out infinite}
+  main{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px calc(150px + env(safe-area-inset-bottom));text-align:center}
 
-  .eyebrow{font-family:"Cormorant Garamond",serif;font-size:13px;letter-spacing:.45em;color:var(--g2);padding-left:.45em;animation:up 1.2s .1s both}
-  h1{font-family:"Cormorant Garamond","Noto Serif TC",serif;font-style:italic;font-weight:500;font-size:clamp(40px,11vw,68px);line-height:1.15;margin:8px 0 4px;animation:up 1.2s .3s both}
-  .gold{background:linear-gradient(100deg,var(--g3) 0%,var(--g1) 25%,var(--g2) 50%,var(--g1) 75%,var(--g3) 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
-  h1.gold{animation:up 1.2s .3s both,shine 6s linear infinite}
+  .eyebrow{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:13px;letter-spacing:.45em;color:var(--terra);padding-left:.45em;animation:up 1s .1s both}
+  h1{font-family:"Cormorant Garamond",serif;font-style:italic;font-weight:600;font-size:clamp(38px,10.5vw,64px);line-height:1.1;margin:6px 0 2px;animation:up 1s .25s both}
+  .warm{background:linear-gradient(100deg,#9c4f2b 0%,#d99a4e 30%,#b5643a 55%,#e3ad62 80%,#9c4f2b 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+  h1.warm{animation:up 1s .25s both,shine 6s linear infinite}
+  .sub{font-size:13px;letter-spacing:.25em;color:rgba(74,46,31,.7);padding-left:.25em;animation:up 1s .4s both}
 
-  .rule{display:flex;align-items:center;gap:10px;width:min(280px,70vw);margin:10px auto 18px;animation:up 1.2s .5s both}
-  .rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--g2))}
-  .rule::after{background:linear-gradient(90deg,var(--g2),transparent)}
-  .rule i{width:7px;height:7px;transform:rotate(45deg);border:1px solid var(--g2)}
+  .rule{display:flex;align-items:center;gap:10px;width:min(260px,66vw);margin:10px auto 8px;animation:up 1s .5s both}
+  .rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+  .rule::after{background:linear-gradient(90deg,var(--gold),transparent)}
+  .rule svg{width:16px;height:16px}
 
-  .days{animation:up 1.4s .7s both}
-  .days .num{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(110px,36vw,200px);line-height:.9;filter:drop-shadow(0 0 24px rgba(217,178,90,.35))}
-  .days .label{font-size:14px;letter-spacing:.3em;color:var(--g2);margin-top:6px;padding-left:.3em}
-
+  .days{animation:up 1.2s .6s both}
+  .days .num{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:clamp(100px,32vw,180px);line-height:.92;filter:drop-shadow(0 4px 10px rgba(181,100,58,.25))}
+  .days .label{font-size:14px;letter-spacing:.3em;color:var(--terra);margin-top:2px;padding-left:.3em}
   .dg{display:inline-block}
   .dg.roll{animation:roll .6s cubic-bezier(.2,.8,.2,1)}
 
-  .rings{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,4vw,24px);margin-top:28px;animation:up 1.4s .9s both}
-  .ring{position:relative;width:clamp(86px,25vw,120px);aspect-ratio:1}
-  .ring svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 0 4px rgba(251,239,200,.45))}
-  .ring .track{fill:none;stroke:rgba(217,178,90,.14);stroke-width:2}
-  .ring .bar{fill:none;stroke:url(#gg);stroke-width:3;stroke-linecap:round}
+  .rings{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,4vw,22px);margin-top:20px;animation:up 1.2s .8s both}
+  .ring{position:relative;width:clamp(80px,23vw,112px);aspect-ratio:1;background:rgba(255,250,243,.55);border-radius:50%;box-shadow:0 6px 18px rgba(181,100,58,.12);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .ring .track{fill:none;stroke:rgba(181,100,58,.13);stroke-width:3}
+  .ring .bar{fill:none;stroke:url(#gg);stroke-width:4;stroke-linecap:round}
   .ring .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .ring .num{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(28px,8.5vw,40px);color:var(--g1);line-height:1}
-  .ring .unit{font-size:11px;letter-spacing:.2em;color:var(--g2);margin-top:4px;padding-left:.2em}
+  .ring .num{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:clamp(26px,8vw,38px);color:var(--ink);line-height:1}
+  .ring .unit{font-size:11px;letter-spacing:.2em;color:var(--terra);margin-top:3px;padding-left:.2em}
 
-  .venue{margin-top:32px;animation:up 1.4s 1.1s both}
-  .venue .zh{font-size:15px;letter-spacing:.2em;padding-left:.2em}
-  .venue .en{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:14px;color:rgba(243,234,215,.55);margin-top:4px}
-  .msg{font-size:16px;letter-spacing:.15em;color:var(--g1);margin-top:18px;min-height:1.4em}
-  .hint{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));left:0;right:0;z-index:2;text-align:center;font-size:11px;letter-spacing:.2em;color:rgba(243,234,215,.35);animation:up 1.4s 1.6s both,breathe 3s 3s ease-in-out infinite}
+  .venue{margin-top:18px;animation:up 1.2s 1s both}
+  .venue .zh{font-size:14px;letter-spacing:.2em;padding-left:.2em}
+  .venue .en{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:14px;color:rgba(74,46,31,.55);margin-top:2px}
+  .msg{font-size:15px;letter-spacing:.15em;color:var(--terra);margin-top:10px;min-height:1.3em}
 
-  @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  /* 矮袋鼠 */
+  .couple{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 6px);transform:translateX(-50%);z-index:3;display:flex;align-items:flex-end;gap:2px;animation:rise 1.2s 1.1s both}
+  .q{width:clamp(110px,30vw,150px);cursor:pointer;transform-origin:50% 100%;animation:bob 3.2s ease-in-out infinite}
+  .q.b{animation-delay:-1.6s}
+  .q svg{width:100%;display:block;overflow:visible}
+  .q.hop{animation:hop .7s cubic-bezier(.3,.7,.4,1)}
+  .q .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}
+  .q.b .eye{animation-delay:-2.2s}
+  .q.b svg{transform:scaleX(-1)}
+  .mid{width:34px;margin-bottom:62px;animation:beat 1.3s ease-in-out infinite}
+  .hint{font-size:10px;margin-top:2px;letter-spacing:.2em;color:rgba(74,46,31,.4)}
+
+  @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes rise{from{opacity:0;transform:translate(-50%,40px)}to{opacity:1;transform:translate(-50%,0)}}
   @keyframes shine{to{background-position:200% center}}
   @keyframes roll{from{opacity:0;transform:translateY(-45%) scale(.9);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
-  @keyframes breathe{50%{opacity:.4}}
-  @media(max-height:640px){.days .num{font-size:min(30vw,120px)}.rings{margin-top:16px}.venue{margin-top:18px}}
+  @keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.06)}}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-3px) rotate(-1.5deg)}75%{transform:translateY(-2px) rotate(1.5deg)}}
+  @keyframes hop{0%{transform:scale(1,1)}15%{transform:scale(1.08,.88)}45%{transform:translateY(-46px) scale(.95,1.06)}70%{transform:translateY(0) scale(1.06,.92)}100%{transform:none}}
+  @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.12)}}
+  @media(max-height:700px){.days .num{font-size:min(26vw,110px)}.rings{margin-top:12px}.ring{width:min(20vw,84px)}.venue{margin-top:10px}.q{width:min(26vw,110px)}main{padding-bottom:120px}.mid{margin-bottom:44px}}
   @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
+<div class="sun"></div>
 <canvas id="bg"></canvas>
 <canvas id="fx"></canvas>
 
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3ad62"/><stop offset="1" stop-color="#b5643a"/></linearGradient>
+  <!-- 矮袋鼠本體 -->
+  <symbol id="quokka" viewBox="0 0 200 220">
+    <path d="M150 196q34 4 40-22q2-10-6-8q-6 18-36 18z" fill="#8f6644"/>
+    <ellipse cx="74" cy="209" rx="24" ry="8" fill="#7d5638"/>
+    <ellipse cx="126" cy="209" rx="24" ry="8" fill="#7d5638"/>
+    <path d="M100 98c-40 0-62 40-62 74c0 26 26 40 62 40s62-14 62-40c0-34-22-74-62-74z" fill="#a97b55"/>
+    <path d="M100 128c-24 0-36 22-36 44c0 18 16 30 36 30s36-12 36-30c0-22-12-44-36-44z" fill="#e2c09a"/>
+    <ellipse cx="62" cy="40" rx="13" ry="15" fill="#a97b55" transform="rotate(-20 62 40)"/><ellipse cx="62" cy="42" rx="6.5" ry="8.5" fill="#6e4a30" transform="rotate(-20 62 42)"/>
+    <ellipse cx="138" cy="40" rx="13" ry="15" fill="#a97b55" transform="rotate(20 138 40)"/><ellipse cx="138" cy="42" rx="6.5" ry="8.5" fill="#6e4a30" transform="rotate(20 138 42)"/>
+    <path d="M100 32c-34 0-54 22-56 48c-2 20 8 36 22 42c10 4 22 6 34 6s24-2 34-6c14-6 24-22 22-42c-2-26-22-48-56-48z" fill="#a97b55"/>
+    <path d="M100 82c-26 0-40 12-40 24c0 12 18 20 40 20s40-8 40-20c0-12-14-24-40-24z" fill="#e2c09a"/>
+    <ellipse cx="60" cy="100" rx="10" ry="6" fill="#f29c96" opacity=".65"/>
+    <ellipse cx="140" cy="100" rx="10" ry="6" fill="#f29c96" opacity=".65"/>
+    <g class="eye"><circle cx="79" cy="74" r="6.5" fill="#2b1d14"/><circle cx="81.5" cy="71.5" r="2.2" fill="#fff"/></g>
+    <g class="eye"><circle cx="121" cy="74" r="6.5" fill="#2b1d14"/><circle cx="123.5" cy="71.5" r="2.2" fill="#fff"/></g>
+    <path d="M92 88q8-4 16 0q-2 7-8 8q-6-1-8-8z" fill="#2b1d14"/>
+    <path d="M100 96v4M80 100q20 20 40 0" stroke="#2b1d14" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M92 106q8 9 16 0z" fill="#e8807a"/>
+    <ellipse cx="82" cy="140" rx="10" ry="8" fill="#8f6644"/>
+    <ellipse cx="118" cy="140" rx="10" ry="8" fill="#8f6644"/>
+  </symbol>
+</defs></svg>
+
 <main>
   <p class="eyebrow" id="date"></p>
-  <h1 class="gold" id="title">We're Getting Married</h1>
-  <div class="rule"><i></i></div>
+  <h1 class="warm" id="title">We're Getting Married</h1>
+  <p class="sub">兩隻矮袋鼠要結婚了</p>
+  <div class="rule"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 3 5 6.4 5c2.1 0 3.6 1.2 4.6 2.7C12 6.2 13.5 5 15.6 5 19 5 21.1 8.6 19.6 11.9 17.5 16.4 12 21 12 21z" fill="#e8807a"/></svg></div>
 
   <div class="days">
     <div class="num" id="d"></div>
@@ -73,9 +117,9 @@
   </div>
 
   <div class="rings" id="rings">
-    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="46"/><circle class="bar" id="hBar" cx="50" cy="50" r="46"/></svg><div class="in"><div class="num" id="h"></div><div class="unit">時</div></div></div>
-    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="46"/><circle class="bar" id="mBar" cx="50" cy="50" r="46"/></svg><div class="in"><div class="num" id="m"></div><div class="unit">分</div></div></div>
-    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="46"/><circle class="bar" id="sBar" cx="50" cy="50" r="46"/></svg><div class="in"><div class="num" id="s"></div><div class="unit">秒</div></div></div>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="bar" id="hBar" cx="50" cy="50" r="45"/></svg><div class="in"><div class="num" id="h"></div><div class="unit">時</div></div></div>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="bar" id="mBar" cx="50" cy="50" r="45"/></svg><div class="in"><div class="num" id="m"></div><div class="unit">分</div></div></div>
+    <div class="ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="bar" id="sBar" cx="50" cy="50" r="45"/></svg><div class="in"><div class="num" id="s"></div><div class="unit">秒</div></div></div>
   </div>
 
   <div class="venue">
@@ -83,12 +127,36 @@
     <div class="en">Mandarin Oriental, Taipei</div>
   </div>
   <p class="msg" id="msg"></p>
+  <p class="hint">輕觸矮袋鼠或畫面</p>
 </main>
-<p class="hint">輕觸畫面放煙火</p>
 
-<svg width="0" height="0" style="position:absolute"><defs>
-  <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbefc8"/><stop offset=".5" stop-color="#d9b25a"/><stop offset="1" stop-color="#9a7228"/></linearGradient>
-</defs></svg>
+<div class="couple">
+  <!-- 新郎:領結 -->
+  <div class="q a" id="qa"><svg viewBox="0 0 200 220">
+    <use href="#quokka"/>
+    <path d="M100 130l-18-10v20zM100 130l18-10v20z" fill="#2b1d14"/>
+    <circle cx="100" cy="130" r="5" fill="#4a2e1f"/>
+  </svg></div>
+  <svg class="mid" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.1C.9 8.6 3 5 6.4 5c2.1 0 3.6 1.2 4.6 2.7C12 6.2 13.5 5 15.6 5 19 5 21.1 8.6 19.6 11.9 17.5 16.4 12 21 12 21z" fill="#e8807a"/></svg>
+  <!-- 新娘:頭紗與花冠 -->
+  <div class="q b" id="qb"><svg viewBox="0 0 200 220">
+    <path d="M62 44q40-30 80 0q32 40 28 130q-10 20-24 22q8-70-16-120q-30-18-68-32z" fill="#fff" opacity=".7"/>
+    <use href="#quokka"/>
+    <g>
+      <circle cx="70" cy="40" r="7" fill="#fff"/><circle cx="70" cy="40" r="2.6" fill="#f2c46a"/>
+      <circle cx="85" cy="34" r="6" fill="#f6b3b0"/>
+      <circle cx="100" cy="32" r="7.5" fill="#fff"/><circle cx="100" cy="32" r="2.8" fill="#f2c46a"/>
+      <circle cx="115" cy="34" r="6" fill="#f6b3b0"/>
+      <circle cx="130" cy="40" r="7" fill="#fff"/><circle cx="130" cy="40" r="2.6" fill="#f2c46a"/>
+      <ellipse cx="77" cy="30" rx="5" ry="2.5" fill="#7f9f86" transform="rotate(-30 77 30)"/>
+      <ellipse cx="123" cy="30" rx="5" ry="2.5" fill="#7f9f86" transform="rotate(30 123 30)"/>
+    </g>
+    <g transform="translate(100 146)">
+      <circle cx="-7" cy="-4" r="7" fill="#fff"/><circle cx="7" cy="-4" r="7" fill="#f6b3b0"/><circle cx="0" cy="6" r="7" fill="#fff"/>
+      <circle cx="0" cy="-1" r="3" fill="#f2c46a"/>
+    </g>
+  </svg></div>
+</div>
 
 <script>
 // 婚禮時間(台灣時間)，要改時間只改這一行
@@ -104,12 +172,12 @@ const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Ta
 $('date').textContent = `${p.year}.${p.month}.${p.day} ${p.weekday.toUpperCase()} ${p.hour}:${p.minute}`;
 
 // 數字變動時做滾動動畫
-function setNum(el, str, gold){
+function setNum(el, str, warm){
   const old = el.dataset.v || '';
   if (old === str) return;
   el.dataset.v = str;
   if (old.length !== str.length) {
-    el.innerHTML = [...str].map(c => `<span class="dg${gold ? ' gold' : ''}">${c}</span>`).join('');
+    el.innerHTML = [...str].map(c => `<span class="dg${warm ? ' warm' : ''}">${c}</span>`).join('');
     return;
   }
   [...str].forEach((c, i) => {
@@ -121,14 +189,24 @@ function setNum(el, str, gold){
 }
 
 // 圓環進度
-const C = 2 * Math.PI * 46;
+const C = 2 * Math.PI * 45;
 const bars = ['hBar','mBar','sBar'].map(id => { const b = $(id); b.style.strokeDasharray = C; return b; });
 const setRing = (b, f) => b.style.strokeDashoffset = C * (1 - f);
 
-let married = false;
+// 矮袋鼠跳一下並冒愛心
+function hop(el){
+  el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop');
+  const r = el.getBoundingClientRect();
+  hearts(r.left + r.width / 2, r.top + r.height * .25, 10);
+}
+for (const q of [$('qa'), $('qb')]) {
+  q.addEventListener('pointerdown', e => { e.stopPropagation(); hop(q); });
+  q.addEventListener('animationend', e => { if (e.animationName === 'hop') q.classList.remove('hop'); });
+}
+
+let married = false, lastSec = -1;
 function update(){
-  const now = Date.now();
-  const rem = target - now;
+  const rem = target - Date.now();
   if (rem > 0) {
     const sec = Math.floor(rem / 1000);
     setNum($('d'), String(Math.floor(sec / 86400)), true);
@@ -138,6 +216,9 @@ function update(){
     setRing(bars[0], (rem % 86400000) / 86400000);
     setRing(bars[1], (rem % 3600000) / 3600000);
     setRing(bars[2], (rem % 60000) / 60000);
+    // 每分鐘整點兩隻輪流跳一下
+    if (sec !== lastSec && sec % 60 === 0) { hop($('qa')); setTimeout(() => hop($('qb')), 350); }
+    lastSec = sec;
   } else {
     const days = Math.floor(-rem / 86400000) + 1;
     setNum($('d'), String(days), true);
@@ -148,116 +229,129 @@ function update(){
       $('rings').style.display = 'none';
       $('msg').textContent = days === 1 ? '今天結婚' : '';
       for (let i = 0; i < 6; i++) setTimeout(randomBurst, i * 350);
+      setInterval(() => { hop($('qa')); setTimeout(() => hop($('qb')), 300); }, 4000);
     }
-    // 婚禮當天持續施放煙火
-    if (days === 1 && Math.random() < 0.025) randomBurst();
+    if (days === 1 && Math.random() < 0.02) randomBurst();
   }
 }
 
-// ===== 背景：金色光點與花瓣 =====
+// ===== 背景：光點、尤加利葉、花瓣 =====
 const bg = $('bg'), bx = bg.getContext('2d');
 const fx = $('fx'), fxx = fx.getContext('2d');
-let W, H, dpr, dots = [], petals = [];
+let W, H, dpr, dots = [], leaves = [];
 function resize(){
   dpr = Math.min(devicePixelRatio || 1, 2);
   W = innerWidth; H = innerHeight;
   for (const c of [bg, fx]) { c.width = W * dpr; c.height = H * dpr; }
   bx.setTransform(dpr, 0, 0, dpr, 0, 0);
   fxx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const n = Math.round(Math.min(110, W * H / 9000) * (reduce ? .4 : 1));
-  dots = Array.from({length:n}, () => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.8+.4, vy:-(Math.random()*.25+.05), vx:(Math.random()-.5)*.1, t:Math.random()*6.28, ts:Math.random()*.03+.01}));
-  petals = reduce ? [] : Array.from({length:Math.round(W / 60) + 6}, newPetal);
+  const n = Math.round(Math.min(60, W * H / 14000) * (reduce ? .4 : 1));
+  dots = Array.from({length:n}, () => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*2.5+1, vy:-(Math.random()*.2+.05), t:Math.random()*6.28, ts:Math.random()*.02+.008}));
+  leaves = reduce ? [] : Array.from({length:Math.round(W / 55) + 6}, newLeaf);
 }
-function newPetal(init = true){
-  return {x:Math.random()*W, y:init ? Math.random()*H : -20, s:Math.random()*6+5, vy:Math.random()*.5+.35, sw:Math.random()*1.5+.5, ph:Math.random()*6.28, rot:Math.random()*6.28, vr:(Math.random()-.5)*.03, a:Math.random()*.35+.25, gold:Math.random() < .35};
+function newLeaf(init = true){
+  const k = Math.random();
+  return {x:Math.random()*W, y:init ? Math.random()*H : -20, s:Math.random()*6+6, vy:Math.random()*.5+.35, sw:Math.random()*1.4+.5, ph:Math.random()*6.28, rot:Math.random()*6.28, vr:(Math.random()-.5)*.03,
+    kind:k < .5 ? 'leaf' : 'petal', color:k < .5 ? `rgba(127,159,134,${Math.random()*.3+.45})` : (k < .8 ? `rgba(242,156,150,${Math.random()*.3+.4})` : `rgba(255,255,255,${Math.random()*.3+.6})`)};
 }
-function drawBg(t){
+function drawBg(){
   bx.clearRect(0, 0, W, H);
-  bx.globalCompositeOperation = 'lighter';
   for (const d of dots) {
-    d.y += d.vy; d.x += d.vx; d.t += d.ts;
-    if (d.y < -5) { d.y = H + 5; d.x = Math.random() * W; }
-    const a = (Math.sin(d.t) + 1) / 2 * .7 + .15;
-    bx.fillStyle = `rgba(251,239,200,${a * .12})`;
-    bx.beginPath(); bx.arc(d.x, d.y, d.r * 5, 0, 6.28); bx.fill();
-    bx.fillStyle = `rgba(251,239,200,${a})`;
+    d.y += d.vy; d.t += d.ts;
+    if (d.y < -10) { d.y = H + 10; d.x = Math.random() * W; }
+    const a = (Math.sin(d.t) + 1) / 2 * .5 + .2;
+    bx.fillStyle = `rgba(255,255,255,${a * .25})`;
+    bx.beginPath(); bx.arc(d.x, d.y, d.r * 4, 0, 6.28); bx.fill();
+    bx.fillStyle = `rgba(255,255,255,${a})`;
     bx.beginPath(); bx.arc(d.x, d.y, d.r, 0, 6.28); bx.fill();
   }
-  bx.globalCompositeOperation = 'source-over';
-  for (const pt of petals) {
-    pt.y += pt.vy; pt.ph += .015; pt.rot += pt.vr;
-    const x = pt.x + Math.sin(pt.ph) * pt.sw * 20;
-    if (pt.y > H + 20) Object.assign(pt, newPetal(false));
+  for (const l of leaves) {
+    l.y += l.vy; l.ph += .015; l.rot += l.vr;
+    const x = l.x + Math.sin(l.ph) * l.sw * 20;
+    if (l.y > H + 20) Object.assign(l, newLeaf(false));
     bx.save();
-    bx.translate(x, pt.y); bx.rotate(pt.rot);
-    bx.scale(1, Math.abs(Math.cos(pt.ph * 1.3)) * .6 + .4);
-    bx.fillStyle = pt.gold ? `rgba(217,178,90,${pt.a})` : `rgba(233,185,181,${pt.a})`;
+    bx.translate(x, l.y); bx.rotate(l.rot);
+    bx.scale(1, Math.abs(Math.cos(l.ph * 1.3)) * .6 + .4);
+    bx.fillStyle = l.color;
     bx.beginPath();
-    bx.moveTo(0, -pt.s);
-    bx.quadraticCurveTo(pt.s * .9, 0, 0, pt.s);
-    bx.quadraticCurveTo(-pt.s * .9, 0, 0, -pt.s);
-    bx.fill();
+    if (l.kind === 'leaf') {
+      // 尤加利葉:細長葉片加葉脈
+      bx.moveTo(0, -l.s * 1.4);
+      bx.quadraticCurveTo(l.s * .7, 0, 0, l.s * 1.4);
+      bx.quadraticCurveTo(-l.s * .7, 0, 0, -l.s * 1.4);
+      bx.fill();
+      bx.strokeStyle = 'rgba(255,255,255,.35)'; bx.lineWidth = .8;
+      bx.beginPath(); bx.moveTo(0, -l.s * 1.2); bx.lineTo(0, l.s * 1.2); bx.stroke();
+    } else {
+      bx.moveTo(0, -l.s);
+      bx.quadraticCurveTo(l.s * .9, 0, 0, l.s);
+      bx.quadraticCurveTo(-l.s * .9, 0, 0, -l.s);
+      bx.fill();
+    }
     bx.restore();
   }
 }
 
-// ===== 煙火 =====
+// ===== 彩紙與愛心 =====
 const sparks = [];
-const COLORS = ['251,239,200', '217,178,90', '233,185,181', '255,255,255', '246,214,150'];
-function burst(x, y, big = 1){
-  const n = Math.round((reduce ? 30 : 80) * big);
-  const col = COLORS[Math.floor(Math.random() * COLORS.length)];
-  for (let i = 0; i < n; i++) {
-    const ang = Math.random() * 6.28, sp = (Math.random() * 4 + 1.5) * big;
-    const life = Math.random() * 40 + 60;
-    sparks.push({x, y, px:x, py:y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, life, max:life, c:Math.random() < .3 ? '255,255,255' : col, heart:Math.random() < .08});
-  }
-}
-function randomBurst(){ burst(W * (Math.random() * .7 + .15), H * (Math.random() * .35 + .12), Math.random() * .5 + .8); }
-function heart(ctx, x, y, s){
+const COLORS = ['#e8807a', '#d99a4e', '#b5643a', '#7f9f86', '#f6b3b0', '#f2c46a', '#ffffff'];
+function heartPath(ctx, s){
   ctx.beginPath();
-  ctx.moveTo(x, y + s * .3);
-  ctx.bezierCurveTo(x, y, x - s, y, x - s, y + s * .35);
-  ctx.bezierCurveTo(x - s, y + s * .8, x, y + s, x, y + s * 1.3);
-  ctx.bezierCurveTo(x, y + s, x + s, y + s * .8, x + s, y + s * .35);
-  ctx.bezierCurveTo(x + s, y, x, y, x, y + s * .3);
+  ctx.moveTo(0, s * .3);
+  ctx.bezierCurveTo(0, 0, -s, 0, -s, s * .35);
+  ctx.bezierCurveTo(-s, s * .8, 0, s, 0, s * 1.3);
+  ctx.bezierCurveTo(0, s, s, s * .8, s, s * .35);
+  ctx.bezierCurveTo(s, 0, 0, 0, 0, s * .3);
   ctx.fill();
 }
+function burst(x, y, big = 1){
+  const n = Math.round((reduce ? 25 : 70) * big);
+  for (let i = 0; i < n; i++) {
+    const ang = Math.random() * 6.28, sp = (Math.random() * 4.5 + 1.5) * big;
+    const life = Math.random() * 50 + 70;
+    const r = Math.random();
+    sparks.push({x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - 1.5, life, max:life, c:COLORS[Math.floor(Math.random()*COLORS.length)],
+      type:r < .18 ? 'heart' : (r < .6 ? 'paper' : 'dot'), s:Math.random()*4+3, rot:Math.random()*6.28, vr:(Math.random()-.5)*.3});
+  }
+}
+function hearts(x, y, n){
+  for (let i = 0; i < n; i++) {
+    const life = Math.random() * 40 + 60;
+    sparks.push({x:x + (Math.random()-.5)*40, y, vx:(Math.random()-.5)*1.5, vy:-(Math.random()*2+1.5), life, max:life, c:Math.random() < .7 ? '#e8807a' : '#f6b3b0', type:'heart', s:Math.random()*4+4, rot:(Math.random()-.5)*.6, vr:0, float:true});
+  }
+}
+function randomBurst(){ burst(W * (Math.random() * .7 + .15), H * (Math.random() * .3 + .15), Math.random() * .4 + .8); }
 function drawFx(){
   fxx.clearRect(0, 0, W, H);
-  fxx.globalCompositeOperation = 'lighter';
   for (let i = sparks.length - 1; i >= 0; i--) {
     const s = sparks[i];
-    s.px = s.x; s.py = s.y;
-    s.vx *= .975; s.vy = s.vy * .975 + .045;
-    s.x += s.vx; s.y += s.vy; s.life--;
+    if (s.float) { s.vy *= .99; s.x += Math.sin(s.life * .1) * .4; }
+    else { s.vx *= .97; s.vy = s.vy * .97 + .06; }
+    s.x += s.vx; s.y += s.vy; s.rot += s.vr; s.life--;
     if (s.life <= 0) { sparks.splice(i, 1); continue; }
-    const a = s.life / s.max;
-    if (s.heart) {
-      fxx.fillStyle = `rgba(233,150,160,${a})`;
-      heart(fxx, s.x, s.y, 4);
-    } else {
-      fxx.strokeStyle = `rgba(${s.c},${a})`;
-      fxx.lineWidth = 1.6;
-      fxx.beginPath(); fxx.moveTo(s.px - s.vx * 2, s.py - s.vy * 2); fxx.lineTo(s.x, s.y); fxx.stroke();
-      if (Math.random() < .15) { fxx.fillStyle = `rgba(255,255,255,${a})`; fxx.fillRect(s.x, s.y, 1.5, 1.5); }
-    }
+    fxx.globalAlpha = Math.min(1, s.life / s.max * 1.6);
+    fxx.fillStyle = s.c;
+    fxx.save(); fxx.translate(s.x, s.y); fxx.rotate(s.rot);
+    if (s.type === 'heart') heartPath(fxx, s.s * .8);
+    else if (s.type === 'paper') { fxx.scale(1, Math.cos(s.rot * 2)); fxx.fillRect(-s.s/2, -s.s/4, s.s, s.s/2); }
+    else { fxx.beginPath(); fxx.arc(0, 0, s.s * .35, 0, 6.28); fxx.fill(); }
+    fxx.restore();
   }
-  fxx.globalCompositeOperation = 'source-over';
+  fxx.globalAlpha = 1;
 }
 
 addEventListener('pointerdown', e => burst(e.clientX, e.clientY));
 addEventListener('resize', resize);
 resize();
 
-function loop(t){
+function loop(){
   update();
-  drawBg(t);
+  drawBg();
   drawFx();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
-setTimeout(() => { if (!married) { randomBurst(); setTimeout(randomBurst, 400); } }, 1400);
+setTimeout(() => { if (!married) { randomBurst(); hop($('qa')); setTimeout(() => hop($('qb')), 350); } }, 1600);
 </script>
 </body>
 </html>
