@@ -27,6 +27,12 @@
 - status：visited已去、planned計畫中、wish願望
 - 行政區邊界資料：travel/regions.json(Natural Earth一級行政區，已簡化)
 
+## 婚禮倒數(wedding/)
+倒數至2026-11-07婚禮，顯示天、時、分、秒；婚禮當天起改顯示結婚第幾天。
+
+- 網址：https://martin-tseng.github.io/cbm-calculator/wedding/
+- 修改時間：編輯wedding/index.html的WEDDING常數(台灣時間+08:00)
+
 ## 00929月配息(00929/)
 輸入持有股數，計算每月可領配息、下次除息日、即將入帳金額。
 

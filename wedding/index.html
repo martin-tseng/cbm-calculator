@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>婚禮倒數</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#fff;color:#111;margin:0 auto;padding:16px;max-width:560px;min-height:100vh;display:flex;flex-direction:column}
+  main{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .date{font-size:13px;color:#666;letter-spacing:.1em;text-align:center;margin:0}
+  h1{font-size:22px;text-align:center;margin:6px 0 2px}
+  .place{font-size:13px;color:#666;text-align:center;margin:0 0 32px}
+  .days{text-align:center;border-top:2px solid #111;border-bottom:2px solid #111;padding:20px 0;margin-bottom:12px}
+  .days .num{font-size:96px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .days .unit{font-size:14px;color:#555;margin-top:6px}
+  .hms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+  .hms div{border:1px solid #ccc;border-radius:6px;padding:12px 0}
+  .hms .num{font-size:32px;font-weight:600;font-variant-numeric:tabular-nums}
+  .hms .unit{font-size:11px;color:#777;margin-top:2px}
+  .msg{text-align:center;font-size:15px;margin-top:24px;min-height:1.4em}
+  .note{font-size:11px;color:#999;text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+<main>
+  <p class="date" id="date"></p>
+  <h1>婚禮倒數</h1>
+  <p class="place">台北文華東方酒店</p>
+
+  <div class="days">
+    <div class="num" id="d">0</div>
+    <div class="unit" id="dLabel">天</div>
+  </div>
+  <div class="hms" id="hms">
+    <div><div class="num" id="h">00</div><div class="unit">時</div></div>
+    <div><div class="num" id="m">00</div><div class="unit">分</div></div>
+    <div><div class="num" id="s">00</div><div class="unit">秒</div></div>
+  </div>
+  <p class="msg" id="msg"></p>
+</main>
+<p class="note">以台灣時間計算</p>
+
+<script>
+// 婚禮時間(台灣時間)，要改時間只改這一行
+const WEDDING = '2026-11-07T00:00:00+08:00';
+
+const target = new Date(WEDDING).getTime();
+const pad = n => String(n).padStart(2, '0');
+const $ = id => document.getElementById(id);
+
+const dt = new Date(target);
+const fmt = new Intl.DateTimeFormat('zh-TW', {timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit', weekday:'short'});
+$('date').textContent = fmt.format(dt);
+
+function tick(){
+  const diff = target - Date.now();
+  if (diff > 0) {
+    const sec = Math.floor(diff / 1000);
+    $('d').textContent = Math.floor(sec / 86400);
+    $('h').textContent = pad(Math.floor(sec % 86400 / 3600));
+    $('m').textContent = pad(Math.floor(sec % 3600 / 60));
+    $('s').textContent = pad(sec % 60);
+    $('dLabel').textContent = '天';
+    $('msg').textContent = '';
+  } else {
+    // 婚禮當天起改為顯示結婚第幾天
+    const days = Math.floor(-diff / 86400000) + 1;
+    $('d').textContent = days;
+    $('dLabel').textContent = '結婚第幾天';
+    $('hms').style.display = 'none';
+    $('msg').textContent = days === 1 ? '今天結婚' : '';
+  }
+}
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
