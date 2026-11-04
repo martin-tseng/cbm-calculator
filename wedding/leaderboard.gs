@@ -5,8 +5,20 @@
 const SHEET = 'scores';
 const MAX_SCORE = 500; // 超過視為異常不收
 
+// 若程式不是從Google Sheet的擴充功能建立，會自動建立一份試算表並記住
+function book_() {
+  const active = SpreadsheetApp.getActive();
+  if (active) return active;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SHEET_ID');
+  if (id) return SpreadsheetApp.openById(id);
+  const ss = SpreadsheetApp.create('婚禮遊戲排行榜');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
+
 function sheet_() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = book_();
   let sh = ss.getSheetByName(SHEET);
   if (!sh) {
     sh = ss.insertSheet(SHEET);
@@ -35,12 +47,22 @@ function out_(obj) {
 }
 
 function doGet() {
-  return out_({ top: top_() });
+  try {
+    return out_({ top: top_() });
+  } catch (err) {
+    return out_({ top: [], error: String(err) });
+  }
+}
+
+// 在編輯器選這個函式按執行，可先完成授權並確認能寫入試算表
+function test() {
+  Logger.log(book_().getUrl());
+  Logger.log(JSON.stringify(top_()));
 }
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
-  lock.waitLock(5000);
+  lock.waitLock(10000);
   try {
     const d = JSON.parse(e.postData.contents);
     let name = String(d.name || '').trim().slice(0, 12);
@@ -49,6 +71,8 @@ function doPost(e) {
     if (/^[=+\-@]/.test(name)) name = "'" + name; // 避免被當成公式
     sheet_().appendRow([new Date(), name, score]);
     return out_({ ok: true, top: top_() });
+  } catch (err) {
+    return out_({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
   }

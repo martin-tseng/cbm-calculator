@@ -449,7 +449,7 @@ let gameOpen = false;
   function renderLb(){
     for (const [id, n] of [['lb1', 5], ['lb2', 10]]) {
       const ol = $(id); ol.textContent = '';
-      if (!top.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = '還沒有人上榜'; ol.append(li); continue; }
+      if (!top.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = lbErr ? '排行榜讀取失敗:' + lbErr : '還沒有人上榜'; ol.append(li); continue; }
       top.slice(0, n).forEach((r, i) => {
         const li = document.createElement('li');
         if (myName && r.name === myName) li.className = 'me';
@@ -458,28 +458,53 @@ let gameOpen = false;
       });
     }
   }
+  let lbErr = '';
+  async function getTop(){
+    const r = await fetch(LEADERBOARD_URL, {redirect:'follow'});
+    const t = await r.text();
+    let d;
+    try { d = JSON.parse(t); } catch(e) { throw new Error(/accounts\.google|signin/i.test(r.url + t) ? '後端需要登入，存取權限不是所有人' : '後端回傳格式錯誤'); }
+    if (d.error) throw new Error('後端錯誤:' + d.error);
+    return d.top || [];
+  }
   async function loadLb(){
     if (!LB) return;
-    try { const r = await fetch(LEADERBOARD_URL); top = (await r.json()).top || []; renderLb(); } catch(e) {}
+    try { top = await getTop(); lbErr = ''; renderLb(); }
+    catch(e) { lbErr = e.message || '連不到排行榜'; console.error('[排行榜]', e); renderLb(); }
   }
   async function upload(){
     const name = $('gName').value.trim().slice(0, 12);
     if (!name) { $('gMsg').textContent = '請輸入暱稱'; return; }
     if (uploaded) return;
     $('gUp').disabled = true; $('gMsg').textContent = '上傳中';
+    const body = JSON.stringify({name, score});
+    let ok = false, why = '';
     try {
       // text/plain避免跨網域預檢
-      const r = await fetch(LEADERBOARD_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({name, score})});
-      const d = await r.json();
-      if (!d.ok) throw 0;
+      const r = await fetch(LEADERBOARD_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body, redirect:'follow'});
+      const d = JSON.parse(await r.text());
+      if (d.ok) { ok = true; top = d.top || top; }
+      else why = d.error ? '後端錯誤:' + d.error : '分數或暱稱不符規則';
+    } catch(e) {
+      // 讀不到回應時改用不讀回應的方式送出，再重新讀排行榜確認
+      console.error('[排行榜] POST', e);
+      try {
+        await fetch(LEADERBOARD_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body});
+        await new Promise(r => setTimeout(r, 1200));
+        top = await getTop();
+        ok = top.some(x => x.name === name && x.score >= score);
+        if (!ok) why = '已送出但排行榜未更新';
+      } catch(e2) { why = e2.message || '連不到排行榜'; console.error('[排行榜] fallback', e2); }
+    }
+    if (ok) {
       uploaded = true; myName = name;
       try { localStorage.setItem('quokkaName', name); } catch(e) {}
-      top = d.top || top; renderLb();
+      renderLb();
       const rank = top.findIndex(x => x.name === name) + 1;
       $('gMsg').textContent = rank ? `已上傳，目前第${rank}名` : '已上傳，未進前10名';
       $('gSub').classList.add('hide');
-    } catch(e) {
-      $('gMsg').textContent = '上傳失敗，請再試一次';
+    } else {
+      $('gMsg').textContent = '上傳失敗:' + why;
       $('gUp').disabled = false;
     }
   }
