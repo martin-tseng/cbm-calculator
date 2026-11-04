@@ -84,6 +84,19 @@
   .card .btns{display:flex;gap:10px;justify-content:center}
   .card button{padding:10px 20px;border-radius:999px;font-family:inherit;font-size:14px;letter-spacing:.1em;cursor:pointer;border:1px solid var(--terra);background:transparent;color:var(--terra)}
   .card button.go{background:linear-gradient(135deg,#d99a4e,#b5643a);color:#fff;border:0}
+  .card{max-height:88vh;overflow:auto}
+  .lb{list-style:none;text-align:left;margin:4px 0 14px;font-size:14px}
+  .lb li{display:flex;gap:8px;padding:6px 4px;border-bottom:1px solid rgba(181,100,58,.15)}
+  .lb li .rk{width:22px;color:var(--terra);font-family:"Cormorant Garamond",serif;font-weight:700;font-size:16px}
+  .lb li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lb li .pt{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:16px}
+  .lb li.me{background:rgba(232,128,122,.12);border-radius:6px}
+  .lb .empty{color:rgba(74,46,31,.5);justify-content:center}
+  .lbt{font-size:13px;letter-spacing:.2em;color:var(--terra);margin-top:4px}
+  .sub{display:flex;gap:8px;margin:4px 0 10px}
+  .sub input{flex:1;min-width:0;padding:9px 12px;border:1px solid rgba(181,100,58,.4);border-radius:999px;font-family:inherit;font-size:16px;background:#fff;color:var(--ink)}
+  .sub button{flex:none}
+  .lbmsg{font-size:12px;color:rgba(74,46,31,.6);min-height:1.2em;margin-bottom:6px}
   .hide{display:none!important}
 
   @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -193,6 +206,7 @@
     <h2>接尤加利葉</h2>
     <div class="rules">左右滑動移動矮袋鼠<br>尤加利葉+1 愛心+3 戒指+5<br>碰到蟲子-3 限時30秒</div>
     <div class="best" id="gBest1"></div>
+    <div class="lbwrap hide"><div class="lbt">全場排行榜</div><ol class="lb" id="lb1"></ol></div>
     <div class="btns"><button class="go" id="gGo">開始</button></div>
   </div></div>
   <div class="panel hide" id="gEnd"><div class="card">
@@ -200,6 +214,11 @@
     <h2>本次得分</h2>
     <div class="big" id="gFinal">0</div>
     <div class="best" id="gBest2"></div>
+    <div class="lbwrap hide">
+      <div class="sub" id="gSub"><input id="gName" maxlength="12" placeholder="輸入暱稱上傳分數"><button class="go" id="gUp">上傳</button></div>
+      <div class="lbmsg" id="gMsg"></div>
+      <div class="lbt">全場排行榜</div><ol class="lb" id="lb2"></ol>
+    </div>
     <div class="btns"><button id="gBack">回倒數</button><button class="go" id="gAgain">再玩一次</button></div>
   </div></div>
 </div>
@@ -207,6 +226,8 @@
 <script>
 // 婚禮時間(台灣時間)，要改時間只改這一行
 const WEDDING = '2026-11-07T12:00:00+08:00';
+// 排行榜Apps Script網址，留空則不顯示排行榜
+const LEADERBOARD_URL = '';
 
 const target = new Date(WEDDING).getTime();
 const $ = id => document.getElementById(id);
@@ -420,12 +441,59 @@ let gameOpen = false;
     $('gBest1').textContent = b ? `最高分 ${b}` : '';
     $('gBest2').textContent = `最高分 ${b}`;
   }
+  // 排行榜
+  const LB = !!LEADERBOARD_URL;
+  let top = [], myName = '', uploaded = false;
+  try { myName = localStorage.getItem('quokkaName') || ''; } catch(e) {}
+  document.querySelectorAll('.lbwrap').forEach(el => el.classList.toggle('hide', !LB));
+  function renderLb(){
+    for (const [id, n] of [['lb1', 5], ['lb2', 10]]) {
+      const ol = $(id); ol.textContent = '';
+      if (!top.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = '還沒有人上榜'; ol.append(li); continue; }
+      top.slice(0, n).forEach((r, i) => {
+        const li = document.createElement('li');
+        if (myName && r.name === myName) li.className = 'me';
+        for (const [c, t] of [['rk', i + 1], ['nm', r.name], ['pt', r.score]]) { const sp = document.createElement('span'); sp.className = c; sp.textContent = t; li.append(sp); }
+        ol.append(li);
+      });
+    }
+  }
+  async function loadLb(){
+    if (!LB) return;
+    try { const r = await fetch(LEADERBOARD_URL); top = (await r.json()).top || []; renderLb(); } catch(e) {}
+  }
+  async function upload(){
+    const name = $('gName').value.trim().slice(0, 12);
+    if (!name) { $('gMsg').textContent = '請輸入暱稱'; return; }
+    if (uploaded) return;
+    $('gUp').disabled = true; $('gMsg').textContent = '上傳中';
+    try {
+      // text/plain避免跨網域預檢
+      const r = await fetch(LEADERBOARD_URL, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({name, score})});
+      const d = await r.json();
+      if (!d.ok) throw 0;
+      uploaded = true; myName = name;
+      try { localStorage.setItem('quokkaName', name); } catch(e) {}
+      top = d.top || top; renderLb();
+      const rank = top.findIndex(x => x.name === name) + 1;
+      $('gMsg').textContent = rank ? `已上傳，目前第${rank}名` : '已上傳，未進前10名';
+      $('gSub').classList.add('hide');
+    } catch(e) {
+      $('gMsg').textContent = '上傳失敗，請再試一次';
+      $('gUp').disabled = false;
+    }
+  }
+  $('gUp').addEventListener('pointerdown', e => e.stopPropagation());
+  $('gUp').addEventListener('click', upload);
+  $('gName').addEventListener('pointerdown', e => e.stopPropagation());
+  $('gName').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') upload(); });
+
   function open(){
     gameOpen = true; ov.classList.add('on'); size();
     qx = tx = w / 2; items = []; pops = []; score = 0;
     $('gScore').textContent = 0; $('gTime').textContent = DUR.toFixed(1); $('gBar').style.width = '100%';
     $('gStart').classList.remove('hide'); $('gEnd').classList.add('hide');
-    showBest();
+    showBest(); renderLb(); loadLb();
     cancelAnimationFrame(raf); idle();
   }
   function close(){ run = false; gameOpen = false; ov.classList.remove('on'); cancelAnimationFrame(raf); }
@@ -442,6 +510,11 @@ let gameOpen = false;
     $('gFinal').textContent = score;
     $('gRec').classList.toggle('hide', !rec || score === 0);
     showBest();
+    uploaded = false;
+    $('gName').value = myName; $('gUp').disabled = false;
+    $('gSub').classList.toggle('hide', score === 0);
+    $('gMsg').textContent = score === 0 ? '0分無法上傳' : '';
+    renderLb(); loadLb();
     $('gEnd').classList.remove('hide');
     if (rec && score > 0) for (let i = 0; i < 4; i++) setTimeout(() => burstAt(w * (.2 + Math.random() * .6), h * (.15 + Math.random() * .2)), i * 250);
     idle();
