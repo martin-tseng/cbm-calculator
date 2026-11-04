@@ -28,7 +28,7 @@
 - 行政區邊界資料：travel/regions.json(Natural Earth一級行政區，已簡化)
 
 ## 婚禮倒數(wedding/)
-倒數至2026-11-07 12:00婚禮，顯示天、時、分、秒；婚禮當天起改顯示結婚第幾天。
+倒數至2026-11-07 12:00婚禮，金色光點與花瓣背景、時分秒圓環、輕觸畫面放煙火；12:00起切換為Just Married與結婚第幾天，婚禮當天持續施放煙火。
 
 - 網址：https://martin-tseng.github.io/cbm-calculator/wedding/
 - 修改時間：編輯wedding/index.html的WEDDING常數(台灣時間+08:00)
