@@ -2,8 +2,8 @@
   "code": "00929",
   "name": "復華台灣科技優息",
   "price": {
-    "price": 25.53,
-    "date": "2026-11-13",
+    "price": 24.25,
+    "date": "2026-11-16",
     "source": "臺灣證券交易所"
   },
   "dividends": [
@@ -138,12 +138,18 @@
       "payDate": "2026-11-16",
       "amount": 0.38,
       "source": "FinMind"
+    },
+    {
+      "exDate": "2026-11-18",
+      "payDate": "2026-12-14",
+      "amount": 0.38,
+      "source": "FinMind"
     }
   ],
-  "updatedAt": "2026-11-13T14:54:26.225Z",
+  "updatedAt": "2026-11-16T16:23:53.847Z",
   "log": [
-    "TWSE股價:2026-11-13 25.53",
-    "FinMind配息:22筆",
+    "TWSE股價:2026-11-16 24.25",
+    "FinMind配息:23筆",
     "TWSE除息預告:1筆"
   ]
 }
